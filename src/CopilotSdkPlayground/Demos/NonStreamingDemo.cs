@@ -1,3 +1,4 @@
+using CopilotSdkPlayground.Abstractions;
 using GitHub.Copilot.SDK;
 
 namespace CopilotSdkPlayground.Demos;
@@ -6,12 +7,15 @@ namespace CopilotSdkPlayground.Demos;
 /// 非ストリーミングモードのデモ
 /// 完了したレスポンスをまとめて受信して表示します
 /// </summary>
-public static class NonStreamingDemo
+public class NonStreamingDemoService(IConsoleWriter consoleWriter) : INonStreamingDemo
 {
-    public static async Task RunAsync(CopilotClient client)
+    private readonly IConsoleWriter _consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+
+    /// <inheritdoc />
+    public async Task RunAsync(ICopilotClientWrapper client)
     {
-        Console.WriteLine("=== Non-Streaming Mode Demo ===");
-        Console.WriteLine();
+        _consoleWriter.WriteLine("=== Non-Streaming Mode Demo ===");
+        _consoleWriter.WriteLine();
 
         var session = await client.CreateSessionAsync(new SessionConfig
         {
@@ -27,13 +31,13 @@ public static class NonStreamingDemo
             {
                 case AssistantMessageEvent msg:
                     // 完了したメッセージを表示
-                    Console.WriteLine(msg.Data.Content);
+                    _consoleWriter.WriteLine(msg.Data.Content);
                     break;
 
                 case AssistantReasoningEvent reasoningEvt:
                     // 推論結果を表示
-                    Console.WriteLine("--- Reasoning ---");
-                    Console.WriteLine(reasoningEvt.Data.Content);
+                    _consoleWriter.WriteLine("--- Reasoning ---");
+                    _consoleWriter.WriteLine(reasoningEvt.Data.Content);
                     break;
 
                 case SessionIdleEvent:
@@ -43,7 +47,7 @@ public static class NonStreamingDemo
             }
         });
 
-        Console.WriteLine("Assistant: ");
+        _consoleWriter.WriteLine("Assistant: ");
         await session.SendAsync(new MessageOptions { Prompt = "小話をして" });
         await done.Task;
     }
