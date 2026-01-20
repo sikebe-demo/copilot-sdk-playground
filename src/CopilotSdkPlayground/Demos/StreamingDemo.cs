@@ -1,3 +1,4 @@
+using CopilotSdkPlayground.Abstractions;
 using GitHub.Copilot.SDK;
 
 namespace CopilotSdkPlayground.Demos;
@@ -6,12 +7,15 @@ namespace CopilotSdkPlayground.Demos;
 /// ストリーミングモードのデモ
 /// レスポンスをリアルタイムで受信して表示します
 /// </summary>
-public static class StreamingDemo
+public class StreamingDemoService(IConsoleWriter consoleWriter) : IStreamingDemo
 {
-    public static async Task RunAsync(CopilotClient client)
+    private readonly IConsoleWriter _consoleWriter = consoleWriter ?? throw new ArgumentNullException(nameof(consoleWriter));
+
+    /// <inheritdoc />
+    public async Task RunAsync(ICopilotClientWrapper client)
     {
-        Console.WriteLine("=== Streaming Mode Demo ===");
-        Console.WriteLine();
+        _consoleWriter.WriteLine("=== Streaming Mode Demo ===");
+        _consoleWriter.WriteLine();
 
         var session = await client.CreateSessionAsync(new SessionConfig
         {
@@ -27,25 +31,25 @@ public static class StreamingDemo
             {
                 case AssistantMessageDeltaEvent delta:
                     // ストリーミング中のテキスト断片を表示
-                    Console.Write(delta.Data.DeltaContent);
+                    _consoleWriter.Write(delta.Data.DeltaContent);
                     break;
 
                 case AssistantReasoningDeltaEvent reasoningDelta:
                     // 推論中のテキスト断片を表示
-                    Console.Write(reasoningDelta.Data.DeltaContent);
+                    _consoleWriter.Write(reasoningDelta.Data.DeltaContent);
                     break;
 
                 case AssistantMessageEvent msg:
                     // 最終メッセージを表示
-                    Console.WriteLine();
-                    Console.WriteLine("--- Final message ---");
-                    Console.WriteLine(msg.Data.Content);
+                    _consoleWriter.WriteLine();
+                    _consoleWriter.WriteLine("--- Final message ---");
+                    _consoleWriter.WriteLine(msg.Data.Content);
                     break;
 
                 case AssistantReasoningEvent reasoningEvt:
                     // 推論結果を表示
-                    Console.WriteLine("--- Reasoning ---");
-                    Console.WriteLine(reasoningEvt.Data.Content);
+                    _consoleWriter.WriteLine("--- Reasoning ---");
+                    _consoleWriter.WriteLine(reasoningEvt.Data.Content);
                     break;
 
                 case SessionIdleEvent:
@@ -55,7 +59,7 @@ public static class StreamingDemo
             }
         });
 
-        Console.WriteLine("Assistant: ");
+        _consoleWriter.WriteLine("Assistant: ");
         await session.SendAsync(new MessageOptions { Prompt = "小話をして" });
         await done.Task;
     }

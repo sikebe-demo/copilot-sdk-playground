@@ -1,25 +1,37 @@
 using System.Diagnostics;
 using System.Reflection;
+using CopilotSdkPlayground.Abstractions;
 using GitHub.Copilot.SDK;
 using Microsoft.Extensions.Logging;
 
 namespace CopilotSdkPlayground;
 
-public static class CopilotClientInfoLogger
+/// <summary>
+/// Copilot クライアント情報のロギングサービス
+/// </summary>
+public class CopilotClientInfoLoggerService(
+    ILogger<CopilotClientInfoLoggerService> logger,
+    IEnvironmentProvider environmentProvider,
+    IFileSystem fileSystem) : ICopilotClientInfoLogger
 {
     private const BindingFlags _privateInstance = BindingFlags.NonPublic | BindingFlags.Instance;
 
-    public static void LogConnectionInfo(CopilotClient client, ILogger logger)
+    private readonly ILogger<CopilotClientInfoLoggerService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IEnvironmentProvider _environmentProvider = environmentProvider ?? throw new ArgumentNullException(nameof(environmentProvider));
+    private readonly IFileSystem _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+
+    /// <inheritdoc />
+    public void LogConnectionInfo(CopilotClient client)
     {
-        logger.LogInformation("=== Copilot Client Connection Info ===");
+        _logger.LogInformation("=== Copilot Client Connection Info ===");
 
-        LogOptionsInfo(client, logger);
-        LogProcessInfo(client, logger);
+        LogOptionsInfo(client);
+        LogProcessInfo(client);
 
-        logger.LogInformation("=======================================");
+        _logger.LogInformation("=======================================");
     }
 
-    private static void LogOptionsInfo(CopilotClient client, ILogger logger)
+    private void LogOptionsInfo(CopilotClient client)
     {
         var options = GetFieldValue<object>(client, "_options");
         if (options == null) return;
@@ -28,11 +40,11 @@ public static class CopilotClientInfoLogger
         var port = GetPropertyValue<int>(options, "Port");
         var useStdio = GetPropertyValue<bool>(options, "UseStdio");
 
-        logger.LogInformation("  Configured CLI Path: {CliPath}", cliPath ?? "(auto-detected)");
-        logger.LogInformation("  Configured Port: {Port} (UseStdio: {UseStdio})", port, useStdio);
+        _logger.LogInformation("  Configured CLI Path: {CliPath}", cliPath ?? "(auto-detected)");
+        _logger.LogInformation("  Configured Port: {Port} (UseStdio: {UseStdio})", port, useStdio);
     }
 
-    private static void LogProcessInfo(CopilotClient client, ILogger logger)
+    private void LogProcessInfo(CopilotClient client)
     {
         var connectionTask = GetFieldValue<object>(client, "_connectionTask");
         if (connectionTask == null) return;
@@ -43,13 +55,13 @@ public static class CopilotClientInfoLogger
         var process = GetFieldValueByType<Process>(connection);
         if (process == null) return;
 
-        logger.LogInformation("  CLI Process ID: {PID}", process.Id);
-        logger.LogInformation("  CLI Command: {FileName}", process.StartInfo.FileName);
+        _logger.LogInformation("  CLI Process ID: {PID}", process.Id);
+        _logger.LogInformation("  CLI Command: {FileName}", process.StartInfo.FileName);
 
         var arguments = process.StartInfo.Arguments;
         if (string.IsNullOrEmpty(arguments)) return;
 
-        logger.LogInformation("  CLI Arguments: {Arguments}", arguments);
+        _logger.LogInformation("  CLI Arguments: {Arguments}", arguments);
 
         // 引数から実際のCopilot CLIを抽出（例: /c copilot --server ...）
         if (arguments.StartsWith("/c ", StringComparison.OrdinalIgnoreCase))
@@ -58,24 +70,24 @@ public static class CopilotClientInfoLogger
             var resolvedPath = ResolveCopilotCliPath(cliCommand);
             if (resolvedPath != null)
             {
-                logger.LogInformation("  Resolved CLI Path: {ResolvedPath}", resolvedPath);
+                _logger.LogInformation("  Resolved CLI Path: {ResolvedPath}", resolvedPath);
             }
         }
     }
 
-    private static string? ResolveCopilotCliPath(string cliCommand)
+    private string? ResolveCopilotCliPath(string cliCommand)
     {
-        var pathEnv = Environment.GetEnvironmentVariable("PATH");
+        var pathEnv = _environmentProvider.GetEnvironmentVariable("PATH");
         if (pathEnv == null) return null;
 
         var extensions = new[] { ".cmd", ".bat", ".exe", "" };
 
-        foreach (var path in pathEnv.Split(Path.PathSeparator))
+        foreach (var path in pathEnv.Split(_fileSystem.PathSeparator))
         {
             foreach (var ext in extensions)
             {
-                var fullPath = Path.Combine(path, cliCommand + ext);
-                if (File.Exists(fullPath))
+                var fullPath = _fileSystem.CombinePath(path, cliCommand + ext);
+                if (_fileSystem.FileExists(fullPath))
                 {
                     return fullPath;
                 }

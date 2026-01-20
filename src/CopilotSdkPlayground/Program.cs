@@ -1,41 +1,29 @@
 ﻿using CopilotSdkPlayground;
+using CopilotSdkPlayground.Abstractions;
 using CopilotSdkPlayground.Demos;
-using GitHub.Copilot.SDK;
+using CopilotSdkPlayground.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-var useStreaming = !(args.Length > 0 && args[0].Equals("--no-streaming", StringComparison.OrdinalIgnoreCase));
+var builder = Host.CreateApplicationBuilder(args);
 
-using var loggerFactory = LoggerSetup.CreateLoggerFactory();
-var logger = loggerFactory.CreateLogger<CopilotClient>();
-
-await using var client = new CopilotClient(new CopilotClientOptions
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
+builder.Logging.AddSimpleConsole(options =>
 {
-    LogLevel = "debug",
-    Logger = logger,
+    options.SingleLine = true;
+    options.TimestampFormat = "HH:mm:ss ";
 });
 
-try
-{
-    if (useStreaming)
-    {
-        await StreamingDemo.RunAsync(client);
-    }
-    else
-    {
-        await NonStreamingDemo.RunAsync(client);
-    }
+builder.Services.AddSingleton<ICopilotClientFactory, CopilotClientFactory>();
+builder.Services.AddSingleton<IEnvironmentProvider, EnvironmentProvider>();
+builder.Services.AddSingleton<IFileSystem, FileSystemWrapper>();
+builder.Services.AddSingleton<IConsoleWriter, ConsoleWriter>();
+builder.Services.AddSingleton<ICopilotClientInfoLogger, CopilotClientInfoLoggerService>();
+builder.Services.AddSingleton<IStreamingDemo, StreamingDemoService>();
+builder.Services.AddSingleton<INonStreamingDemo, NonStreamingDemoService>();
+builder.Services.AddSingleton<App>();
 
-    CopilotClientInfoLogger.LogConnectionInfo(client, logger);
-}
-catch (StreamJsonRpc.RemoteInvocationException ex)
-{
-    logger.LogError("JSON-RPC Error: {Message}", ex.Message);
-}
-catch (TimeoutException ex)
-{
-    logger.LogError("Timeout: {Message}", ex.Message);
-}
-catch (Exception ex)
-{
-    logger.LogError("Error: {Type} - {Message}", ex.GetType().Name, ex.Message);
-}
+using var host = builder.Build();
+var app = host.Services.GetRequiredService<App>();
+return await app.RunAsync(args);
