@@ -40,9 +40,9 @@ public class NonStreamingDemoServiceTests
         var sessionMock = new Mock<ICopilotSession>();
         var clientMock = new Mock<ICopilotClientWrapper>();
 
-        Action<object>? capturedHandler = null;
-        sessionMock.Setup(s => s.On(It.IsAny<Action<object>>()))
-            .Callback<Action<object>>(handler => capturedHandler = handler);
+        SessionEventHandler? capturedHandler = null;
+        sessionMock.Setup(s => s.On(It.IsAny<SessionEventHandler>()))
+            .Callback<SessionEventHandler>(handler => capturedHandler = handler);
         sessionMock.Setup(s => s.SendAsync(It.IsAny<MessageOptions>()))
             .Returns(Task.CompletedTask);
 
@@ -70,9 +70,9 @@ public class NonStreamingDemoServiceTests
         var clientMock = new Mock<ICopilotClientWrapper>();
         SessionConfig? capturedConfig = null;
 
-        Action<object>? capturedHandler = null;
-        sessionMock.Setup(s => s.On(It.IsAny<Action<object>>()))
-            .Callback<Action<object>>(handler => capturedHandler = handler);
+        SessionEventHandler? capturedHandler = null;
+        sessionMock.Setup(s => s.On(It.IsAny<SessionEventHandler>()))
+            .Callback<SessionEventHandler>(handler => capturedHandler = handler);
         sessionMock.Setup(s => s.SendAsync(It.IsAny<MessageOptions>()))
             .Returns(Task.CompletedTask);
 
@@ -99,9 +99,9 @@ public class NonStreamingDemoServiceTests
         var sessionMock = new Mock<ICopilotSession>();
         var clientMock = new Mock<ICopilotClientWrapper>();
 
-        Action<object>? capturedHandler = null;
-        sessionMock.Setup(s => s.On(It.IsAny<Action<object>>()))
-            .Callback<Action<object>>(handler => capturedHandler = handler);
+        SessionEventHandler? capturedHandler = null;
+        sessionMock.Setup(s => s.On(It.IsAny<SessionEventHandler>()))
+            .Callback<SessionEventHandler>(handler => capturedHandler = handler);
         sessionMock.Setup(s => s.SendAsync(It.IsAny<MessageOptions>()))
             .Returns(Task.CompletedTask);
 
@@ -128,9 +128,9 @@ public class NonStreamingDemoServiceTests
         var sessionMock = new Mock<ICopilotSession>();
         var clientMock = new Mock<ICopilotClientWrapper>();
 
-        Action<object>? capturedHandler = null;
-        sessionMock.Setup(s => s.On(It.IsAny<Action<object>>()))
-            .Callback<Action<object>>(handler => capturedHandler = handler);
+        SessionEventHandler? capturedHandler = null;
+        sessionMock.Setup(s => s.On(It.IsAny<SessionEventHandler>()))
+            .Callback<SessionEventHandler>(handler => capturedHandler = handler);
         sessionMock.Setup(s => s.SendAsync(It.IsAny<MessageOptions>()))
             .Returns(Task.CompletedTask);
 
@@ -159,9 +159,9 @@ public class NonStreamingDemoServiceTests
         var clientMock = new Mock<ICopilotClientWrapper>();
         MessageOptions? capturedOptions = null;
 
-        Action<object>? capturedHandler = null;
-        sessionMock.Setup(s => s.On(It.IsAny<Action<object>>()))
-            .Callback<Action<object>>(handler => capturedHandler = handler);
+        SessionEventHandler? capturedHandler = null;
+        sessionMock.Setup(s => s.On(It.IsAny<SessionEventHandler>()))
+            .Callback<SessionEventHandler>(handler => capturedHandler = handler);
         sessionMock.Setup(s => s.SendAsync(It.IsAny<MessageOptions>()))
             .Callback<MessageOptions>(options => capturedOptions = options)
             .Returns(Task.CompletedTask);
@@ -187,9 +187,9 @@ public class NonStreamingDemoServiceTests
         var sessionMock = new Mock<ICopilotSession>();
         var clientMock = new Mock<ICopilotClientWrapper>();
 
-        Action<object>? capturedHandler = null;
-        sessionMock.Setup(s => s.On(It.IsAny<Action<object>>()))
-            .Callback<Action<object>>(handler => capturedHandler = handler);
+        SessionEventHandler? capturedHandler = null;
+        sessionMock.Setup(s => s.On(It.IsAny<SessionEventHandler>()))
+            .Callback<SessionEventHandler>(handler => capturedHandler = handler);
         sessionMock.Setup(s => s.SendAsync(It.IsAny<MessageOptions>()))
             .Returns(Task.CompletedTask);
 

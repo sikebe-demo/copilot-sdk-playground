@@ -11,7 +11,7 @@ public interface ICopilotSession
     /// イベントハンドラを登録します
     /// </summary>
     /// <param name="handler">イベントハンドラ</param>
-    void On(Action<object> handler);
+    void On(SessionEventHandler handler);
 
     /// <summary>
     /// メッセージを送信します

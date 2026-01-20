@@ -11,13 +11,13 @@ public static class EventFactory
     /// <summary>
     /// SessionIdleEvent を作成します
     /// </summary>
-    public static object CreateSessionIdleEvent() => new SessionIdleEvent();
+    public static SessionEvent CreateSessionIdleEvent() => new SessionIdleEvent();
 
     /// <summary>
     /// <see cref="AssistantMessageEvent"/> を作成します
     /// </summary>
     /// <param name="content">メッセージ内容</param>
-    public static object CreateAssistantMessageEvent(string content)
+    public static SessionEvent CreateAssistantMessageEvent(string content)
     {
         var evt = new AssistantMessageEvent();
         SetDataContent(evt, content, "Content");
@@ -28,7 +28,7 @@ public static class EventFactory
     /// <see cref="AssistantMessageDeltaEvent"/> を作成します
     /// </summary>
     /// <param name="deltaContent">デルタ内容</param>
-    public static object CreateAssistantMessageDeltaEvent(string deltaContent)
+    public static SessionEvent CreateAssistantMessageDeltaEvent(string deltaContent)
     {
         var evt = new AssistantMessageDeltaEvent();
         SetDataContent(evt, deltaContent, "DeltaContent");
@@ -39,7 +39,7 @@ public static class EventFactory
     /// <see cref="AssistantReasoningEvent"/> を作成します
     /// </summary>
     /// <param name="content">推論内容</param>
-    public static object CreateAssistantReasoningEvent(string content)
+    public static SessionEvent CreateAssistantReasoningEvent(string content)
     {
         var evt = new AssistantReasoningEvent();
         SetDataContent(evt, content, "Content");
@@ -50,7 +50,7 @@ public static class EventFactory
     /// <see cref="AssistantReasoningDeltaEvent"/> を作成します
     /// </summary>
     /// <param name="deltaContent">デルタ内容</param>
-    public static object CreateAssistantReasoningDeltaEvent(string deltaContent)
+    public static SessionEvent CreateAssistantReasoningDeltaEvent(string deltaContent)
     {
         var evt = new AssistantReasoningDeltaEvent();
         SetDataContent(evt, deltaContent, "DeltaContent");

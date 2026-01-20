@@ -23,28 +23,16 @@ public class CopilotClientWrapper(CopilotClient client) : ICopilotClientWrapper
 /// </summary>
 public class CopilotSessionWrapper : ICopilotSession
 {
-    private readonly object _session;
-    private readonly Action<Action<object>> _onMethod;
-    private readonly Func<MessageOptions, Task> _sendAsyncMethod;
+    private readonly CopilotSession _session;
 
     public CopilotSessionWrapper(object session)
     {
-        _session = session ?? throw new ArgumentNullException(nameof(session));
-
-        var sessionType = session.GetType();
-
-        // Onメソッドを取得
-        var onMethod = sessionType.GetMethod("On") ?? throw new InvalidOperationException("Session does not have On method");
-        _onMethod = handler => onMethod.Invoke(_session, [handler]);
-
-        // SendAsyncメソッドを取得
-        var sendMethod = sessionType.GetMethod("SendAsync") ?? throw new InvalidOperationException("Session does not have SendAsync method");
-        _sendAsyncMethod = options => (Task)sendMethod.Invoke(_session, [options])!;
+        _session = session as CopilotSession ?? throw new ArgumentException("Session must be a CopilotSession", nameof(session));
     }
 
     /// <inheritdoc />
-    public void On(Action<object> handler) => _onMethod(handler);
+    public void On(SessionEventHandler handler) => _session.On(handler);
 
     /// <inheritdoc />
-    public Task SendAsync(MessageOptions options) => _sendAsyncMethod(options);
+    public Task SendAsync(MessageOptions options) => _session.SendAsync(options);
 }

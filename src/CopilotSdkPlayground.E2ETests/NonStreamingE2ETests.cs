@@ -1,102 +1,47 @@
-using GitHub.Copilot.SDK;
+using Xunit.Abstractions;
 
 namespace CopilotSdkPlayground.E2ETests;
 
 /// <summary>
 /// 非ストリーミングモードの E2E テスト
+/// ビルド済みアプリケーションをプロセスとして実行します
 /// </summary>
-[Collection("CopilotClient")]
-public class NonStreamingE2ETests(CopilotClientFixture fixture)
+[Collection("Process")]
+public class NonStreamingE2ETests(ProcessFixture fixture, ITestOutputHelper output)
 {
-    private readonly CopilotClientFixture _fixture = fixture;
+    private readonly ProcessFixture _fixture = fixture;
+    private readonly ITestOutputHelper _output = output;
 
     [Fact]
-    public async Task NonStreamingMode_ShouldReceiveCompleteResponse()
+    public async Task NonStreamingMode_ShouldRunSuccessfullyWithExpectedOutput()
     {
         // Skip if not available
         Skip.If(!_fixture.IsAvailable, _fixture.SkipReason);
 
         // Arrange
-        var client = _fixture.Client;
-        var session = await client.CreateSessionAsync(new SessionConfig
-        {
-            Model = "gpt-5",
-            Streaming = false
-        });
-
-        string? receivedMessage = null;
-        var done = new TaskCompletionSource();
-        var timeout = TimeSpan.FromSeconds(60);
+        var args = new[] { "--no-streaming" };
 
         // Act
-        session.On(evt =>
-        {
-            switch (evt)
-            {
-                case AssistantMessageEvent msg:
-                    receivedMessage = msg.Data.Content;
-                    break;
+        var result = await _fixture.RunApplicationAsync(args);
+        result.LogTo(_output);
 
-                case SessionIdleEvent:
-                    done.SetResult();
-                    break;
-            }
-        });
+        // Assert - 正常終了
+        Assert.False(result.TimedOut, $"Process should not timeout. StdErr: {result.StandardError}");
+        Assert.Equal(0, result.ExitCode);
 
-        await session.SendAsync(new MessageOptions { Prompt = "Say hello in one word." });
+        // Assert - 期待される出力
+        Assert.Contains("=== Non-Streaming Mode Demo ===", result.StandardOutput);
+        Assert.Contains("Assistant:", result.StandardOutput);
+        Assert.True(result.StandardOutput.Length > 100, "Should have substantial output from the assistant");
 
-        var completedTask = await Task.WhenAny(done.Task, Task.Delay(timeout));
-
-        // Assert
-        Assert.True(completedTask == done.Task, "Response should be received within timeout");
-        Assert.False(string.IsNullOrEmpty(receivedMessage), "Should receive a complete message");
-    }
-
-    [Fact]
-    public async Task NonStreamingMode_ShouldNotReceiveDeltaEvents()
-    {
-        // Skip if not available
-        Skip.If(!_fixture.IsAvailable, _fixture.SkipReason);
-
-        // Arrange
-        var client = _fixture.Client;
-        var session = await client.CreateSessionAsync(new SessionConfig
-        {
-            Model = "gpt-5",
-            Streaming = false
-        });
-
-        var deltaCount = 0;
-        var messageCount = 0;
-        var done = new TaskCompletionSource();
-        var timeout = TimeSpan.FromSeconds(60);
-
-        // Act
-        session.On(evt =>
-        {
-            switch (evt)
-            {
-                case AssistantMessageDeltaEvent:
-                    Interlocked.Increment(ref deltaCount);
-                    break;
-
-                case AssistantMessageEvent:
-                    Interlocked.Increment(ref messageCount);
-                    break;
-
-                case SessionIdleEvent:
-                    done.SetResult();
-                    break;
-            }
-        });
-
-        await session.SendAsync(new MessageOptions { Prompt = "Say hello in one word." });
-
-        var completedTask = await Task.WhenAny(done.Task, Task.Delay(timeout));
-
-        // Assert
-        Assert.True(completedTask == done.Task, "Response should be received within timeout");
-        Assert.Equal(0, deltaCount);
-        Assert.True(messageCount > 0, "Should receive at least one complete message");
+        // Assert - 完全なメッセージが出力されていること
+        var lines = result.StandardOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        var contentLines = lines.Where(l =>
+            !l.Contains("===") &&
+            !l.Contains("Assistant:") &&
+            !l.Contains("---") &&
+            !l.Contains(':') &&
+            !string.IsNullOrWhiteSpace(l)).ToList();
+        Assert.NotEmpty(contentLines);
     }
 }
