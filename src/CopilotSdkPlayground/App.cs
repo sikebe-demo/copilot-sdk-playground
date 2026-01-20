@@ -1,5 +1,4 @@
 using CopilotSdkPlayground.Abstractions;
-using CopilotSdkPlayground.Infrastructure;
 using GitHub.Copilot.SDK;
 using Microsoft.Extensions.Logging;
 
@@ -10,6 +9,7 @@ namespace CopilotSdkPlayground;
 /// </summary>
 public class App(
     ICopilotClientFactory clientFactory,
+    ICopilotClientWrapperFactory clientWrapperFactory,
     IStreamingDemo streamingDemo,
     INonStreamingDemo nonStreamingDemo,
     ICopilotClientInfoLogger clientInfoLogger,
@@ -17,6 +17,7 @@ public class App(
     ILogger<CopilotClient> copilotLogger)
 {
     private readonly ICopilotClientFactory _clientFactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
+    private readonly ICopilotClientWrapperFactory _clientWrapperFactory = clientWrapperFactory ?? throw new ArgumentNullException(nameof(clientWrapperFactory));
     private readonly IStreamingDemo _streamingDemo = streamingDemo ?? throw new ArgumentNullException(nameof(streamingDemo));
     private readonly INonStreamingDemo _nonStreamingDemo = nonStreamingDemo ?? throw new ArgumentNullException(nameof(nonStreamingDemo));
     private readonly ICopilotClientInfoLogger _clientInfoLogger = clientInfoLogger ?? throw new ArgumentNullException(nameof(clientInfoLogger));
@@ -36,7 +37,7 @@ public class App(
             Logger = _copilotLogger,
         });
 
-        var clientWrapper = new CopilotClientWrapper(client);
+        var clientWrapper = _clientWrapperFactory.Create(client);
 
         try
         {

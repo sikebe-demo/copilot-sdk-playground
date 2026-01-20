@@ -7,6 +7,7 @@ namespace CopilotSdkPlayground.UnitTests;
 public class AppTests
 {
     private readonly Mock<ICopilotClientFactory> _clientFactoryMock;
+    private readonly Mock<ICopilotClientWrapperFactory> _clientWrapperFactoryMock;
     private readonly Mock<IStreamingDemo> _streamingDemoMock;
     private readonly Mock<INonStreamingDemo> _nonStreamingDemoMock;
     private readonly Mock<ICopilotClientInfoLogger> _clientInfoLoggerMock;
@@ -16,6 +17,7 @@ public class AppTests
     public AppTests()
     {
         _clientFactoryMock = new Mock<ICopilotClientFactory>();
+        _clientWrapperFactoryMock = new Mock<ICopilotClientWrapperFactory>();
         _streamingDemoMock = new Mock<IStreamingDemo>();
         _nonStreamingDemoMock = new Mock<INonStreamingDemo>();
         _clientInfoLoggerMock = new Mock<ICopilotClientInfoLogger>();
@@ -55,6 +57,21 @@ public class AppTests
         // Arrange & Act & Assert
         Assert.Throws<ArgumentNullException>(() => new App(
             null!,
+            _clientWrapperFactoryMock.Object,
+            _streamingDemoMock.Object,
+            _nonStreamingDemoMock.Object,
+            _clientInfoLoggerMock.Object,
+            _loggerMock.Object,
+            _copilotLoggerMock.Object));
+    }
+
+    [Fact]
+    public void Constructor_WithNullClientWrapperFactory_ShouldThrowArgumentNullException()
+    {
+        // Arrange & Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new App(
+            _clientFactoryMock.Object,
+            null!,
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
             _clientInfoLoggerMock.Object,
@@ -68,6 +85,7 @@ public class AppTests
         // Arrange & Act & Assert
         Assert.Throws<ArgumentNullException>(() => new App(
             _clientFactoryMock.Object,
+            _clientWrapperFactoryMock.Object,
             null!,
             _nonStreamingDemoMock.Object,
             _clientInfoLoggerMock.Object,
@@ -81,6 +99,7 @@ public class AppTests
         // Arrange & Act & Assert
         Assert.Throws<ArgumentNullException>(() => new App(
             _clientFactoryMock.Object,
+            _clientWrapperFactoryMock.Object,
             _streamingDemoMock.Object,
             null!,
             _clientInfoLoggerMock.Object,
@@ -94,6 +113,7 @@ public class AppTests
         // Arrange & Act & Assert
         Assert.Throws<ArgumentNullException>(() => new App(
             _clientFactoryMock.Object,
+            _clientWrapperFactoryMock.Object,
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
             null!,
@@ -107,6 +127,7 @@ public class AppTests
         // Arrange & Act & Assert
         Assert.Throws<ArgumentNullException>(() => new App(
             _clientFactoryMock.Object,
+            _clientWrapperFactoryMock.Object,
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
             _clientInfoLoggerMock.Object,
@@ -120,6 +141,7 @@ public class AppTests
         // Arrange & Act & Assert
         Assert.Throws<ArgumentNullException>(() => new App(
             _clientFactoryMock.Object,
+            _clientWrapperFactoryMock.Object,
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
             _clientInfoLoggerMock.Object,
@@ -131,6 +153,7 @@ public class AppTests
     {
         return new App(
             _clientFactoryMock.Object,
+            _clientWrapperFactoryMock.Object,
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
             _clientInfoLoggerMock.Object,
