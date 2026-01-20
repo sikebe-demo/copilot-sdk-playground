@@ -3,11 +3,64 @@ name: Test
 on:
   pull_request:
     branches: [ main ]
+  workflow_run:
+    workflows: ["Update CLI Versions"]
+    types: [completed]
 
 jobs:
+  # workflow_run トリガー時にPR番号を取得し、テスト開始をコメント
+  notify-test-start:
+    name: Notify Test Start
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    outputs:
+      pr_number: ${{ steps.find-pr.outputs.pr_number }}
+    permissions:
+      pull-requests: write
+
+    steps:
+    - name: Find PR from branch
+      id: find-pr
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        BRANCH_NAME="${{ github.event.workflow_run.head_branch }}"
+        echo "Looking for PR with head branch: $BRANCH_NAME"
+
+        PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --head "$BRANCH_NAME" --json number -q '.[0].number')
+
+        if [ -n "$PR_NUMBER" ]; then
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "Found PR #$PR_NUMBER"
+        else
+          echo "No PR found for branch $BRANCH_NAME"
+          echo "pr_number=" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Comment test starting
+      if: steps.find-pr.outputs.pr_number != ''
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh pr comment ${{ steps.find-pr.outputs.pr_number }} \
+          --repo ${{ github.repository }} \
+          --body "## 🔄 Tests Running
+
+        Tests have been triggered by the CLI version update workflow.
+
+        | Item | Value |
+        |------|-------|
+        | Workflow Run | [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+        | Triggered by | Update CLI Versions workflow |
+
+        Results will be posted here when complete."
+
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    needs: [notify-test-start]
+    # pull_request の場合は常に実行、workflow_run の場合は notify-test-start が成功した場合のみ
+    if: always() && (github.event_name == 'pull_request' || needs.notify-test-start.result == 'success')
 
     steps:
     - name: Checkout
@@ -129,3 +182,72 @@ jobs:
         else
           echo "⚠️ No test results file found" >> $GITHUB_STEP_SUMMARY
         fi
+
+  # workflow_run トリガー時にテスト結果をPRにコメント
+  notify-test-result:
+    name: Notify Test Result
+    runs-on: ubuntu-latest
+    needs: [notify-test-start, unit-tests, e2e-tests]
+    if: always() && github.event_name == 'workflow_run' && needs.notify-test-start.outputs.pr_number != ''
+    permissions:
+      pull-requests: write
+
+    steps:
+    - name: Comment test result
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        PR_NUMBER="${{ needs.notify-test-start.outputs.pr_number }}"
+        UNIT_RESULT="${{ needs.unit-tests.result }}"
+        E2E_RESULT="${{ needs.e2e-tests.result }}"
+
+        # 結果に応じた絵文字とステータス
+        if [ "$UNIT_RESULT" == "success" ]; then
+          UNIT_EMOJI="✅"
+          UNIT_STATUS="Passed"
+        elif [ "$UNIT_RESULT" == "failure" ]; then
+          UNIT_EMOJI="❌"
+          UNIT_STATUS="Failed"
+        elif [ "$UNIT_RESULT" == "skipped" ]; then
+          UNIT_EMOJI="⏭️"
+          UNIT_STATUS="Skipped"
+        else
+          UNIT_EMOJI="⚠️"
+          UNIT_STATUS="$UNIT_RESULT"
+        fi
+
+        if [ "$E2E_RESULT" == "success" ]; then
+          E2E_EMOJI="✅"
+          E2E_STATUS="Passed"
+        elif [ "$E2E_RESULT" == "failure" ]; then
+          E2E_EMOJI="❌"
+          E2E_STATUS="Failed"
+        elif [ "$E2E_RESULT" == "skipped" ]; then
+          E2E_EMOJI="⏭️"
+          E2E_STATUS="Skipped"
+        else
+          E2E_EMOJI="⚠️"
+          E2E_STATUS="$E2E_RESULT"
+        fi
+
+        # 全体の結果
+        if [ "$UNIT_RESULT" == "success" ] && [ "$E2E_RESULT" == "success" ]; then
+          OVERALL_EMOJI="✅"
+          OVERALL_TITLE="Tests Passed"
+        else
+          OVERALL_EMOJI="❌"
+          OVERALL_TITLE="Tests Failed"
+        fi
+
+        gh pr comment "$PR_NUMBER" \
+          --repo ${{ github.repository }} \
+          --body "## ${OVERALL_EMOJI} ${OVERALL_TITLE}
+
+        Tests triggered by the CLI version update workflow have completed.
+
+        | Test Suite | Result |
+        |------------|--------|
+        | Unit Tests | ${UNIT_EMOJI} ${UNIT_STATUS} |
+        | E2E Tests | ${E2E_EMOJI} ${E2E_STATUS} |
+
+        [View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
