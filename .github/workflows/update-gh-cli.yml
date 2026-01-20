@@ -147,8 +147,21 @@ jobs:
         git push origin "$BRANCH_NAME"
 
         # PRを作成
-        echo -e "$BODY" | gh pr create \
+        PR_URL=$(echo -e "$BODY" | gh pr create \
           --title "${TITLE}" \
           --body-file - \
           --base main \
-          --head "$BRANCH_NAME"
+          --head "$BRANCH_NAME")
+
+        # PR番号を抽出してファイルに保存（workflow_run トリガーで使用）
+        PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+        echo "Created PR #${PR_NUMBER}"
+        mkdir -p ./pr-info
+        echo "$PR_NUMBER" > ./pr-info/pr_number
+
+    - name: Upload PR number
+      if: steps.check-gh.outputs.update_available == 'true' || steps.check-copilot.outputs.update_available == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: pr-info
+        path: pr-info/
