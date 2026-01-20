@@ -15,6 +15,7 @@ jobs:
     if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
     outputs:
       pr_number: ${{ steps.get-pr.outputs.pr_number }}
+      branch_name: ${{ steps.get-pr.outputs.branch_name }}
     permissions:
       pull-requests: write
       actions: read
@@ -52,17 +53,20 @@ jobs:
           }
           fs.writeFileSync(path.join(temp, 'pr-info.zip'), Buffer.from(download.data));
 
-    - name: Extract PR number
+    - name: Extract PR info
       id: get-pr
       run: |
         if [ -f "${{ runner.temp }}/pr-info/pr-info.zip" ]; then
           unzip -o "${{ runner.temp }}/pr-info/pr-info.zip" -d "${{ runner.temp }}/pr-info"
           PR_NUMBER=$(cat "${{ runner.temp }}/pr-info/pr_number")
+          BRANCH_NAME=$(cat "${{ runner.temp }}/pr-info/branch_name")
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "Found PR #$PR_NUMBER from artifact"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "Found PR #$PR_NUMBER on branch $BRANCH_NAME from artifact"
         else
           echo "No PR info artifact found"
           echo "pr_number=" >> $GITHUB_OUTPUT
+          echo "branch_name=" >> $GITHUB_OUTPUT
         fi
 
     - name: Comment test starting
@@ -93,6 +97,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        # workflow_run の場合は PR ブランチをチェックアウト
+        ref: ${{ needs.notify-test-start.outputs.branch_name || github.ref }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -138,11 +145,14 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    needs: unit-tests
+    needs: [notify-test-start, unit-tests]
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        # workflow_run の場合は PR ブランチをチェックアウト
+        ref: ${{ needs.notify-test-start.outputs.branch_name || github.ref }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4

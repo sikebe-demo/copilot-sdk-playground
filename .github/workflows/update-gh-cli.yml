@@ -153,11 +153,12 @@ jobs:
           --base main \
           --head "$BRANCH_NAME")
 
-        # PR番号を抽出してファイルに保存（workflow_run トリガーで使用）
+        # PR番号とブランチ名をファイルに保存（workflow_run トリガーで使用）
         PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
-        echo "Created PR #${PR_NUMBER}"
+        echo "Created PR #${PR_NUMBER} on branch ${BRANCH_NAME}"
         mkdir -p ./pr-info
         echo "$PR_NUMBER" > ./pr-info/pr_number
+        echo "$BRANCH_NAME" > ./pr-info/branch_name
 
     - name: Upload PR number
       if: steps.check-gh.outputs.update_available == 'true' || steps.check-copilot.outputs.update_available == 'true'
