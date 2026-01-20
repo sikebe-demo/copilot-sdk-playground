@@ -162,7 +162,7 @@ jobs:
 
     - name: Upload PR number
       if: steps.check-gh.outputs.update_available == 'true' || steps.check-copilot.outputs.update_available == 'true'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: pr-info
         path: pr-info/
