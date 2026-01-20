@@ -3,7 +3,7 @@ using GitHub.Copilot.SDK;
 namespace CopilotSdkPlayground.Abstractions;
 
 /// <summary>
-///<see cref="CopilotSession"/> のインターフェース
+/// <see cref="CopilotSession"/> のインターフェース
 /// </summary>
 public interface ICopilotSession
 {
