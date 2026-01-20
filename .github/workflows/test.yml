@@ -102,7 +102,7 @@ jobs:
         ref: ${{ needs.notify-test-start.outputs.branch_name || github.ref }}
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         global-json-file: './global.json'
 
@@ -155,7 +155,7 @@ jobs:
         ref: ${{ needs.notify-test-start.outputs.branch_name || github.ref }}
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         global-json-file: './global.json'
 
