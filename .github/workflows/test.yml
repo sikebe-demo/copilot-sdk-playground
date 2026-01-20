@@ -77,6 +77,15 @@ jobs:
         sudo dpkg -i gh.deb
         gh --version
 
+    - name: Setup Copilot CLI
+      env:
+        COPILOT_CLI_VERSION: 0.0.386
+      run: |
+        # https://github.com/github/copilot-cli/releases
+        wget -q "https://github.com/github/copilot-cli/releases/download/v${COPILOT_CLI_VERSION}/copilot-linux-x64.tar.gz" -O copilot-cli.tar.gz
+        sudo tar -xzf copilot-cli.tar.gz -C /usr/local/bin
+        copilot --version
+
     - name: Restore dependencies
       run: dotnet restore
 

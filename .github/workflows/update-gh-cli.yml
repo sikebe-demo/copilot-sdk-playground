@@ -1,4 +1,4 @@
-name: Update GitHub CLI Version
+name: Update CLI Versions
 
 on:
   schedule:
@@ -83,6 +83,86 @@ jobs:
         See [GitHub CLI v${{ steps.check.outputs.latest_version }} Release](https://github.com/cli/cli/releases/tag/v${{ steps.check.outputs.latest_version }})
 
         ---
-        *This PR was automatically created by the [Update GitHub CLI workflow](../actions/workflows/update-gh-cli.yml).*" \
+        *This PR was automatically created by the [Update CLI Versions workflow](../actions/workflows/update-gh-cli.yml).*" \
+          --base main \
+          --head "$BRANCH_NAME"
+
+  update-copilot-cli:
+    name: Update Copilot CLI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Check for Copilot CLI updates
+      id: check
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        # 最新バージョンを取得
+        LATEST_VERSION=$(gh release view --repo github/copilot-cli --json tagName -q '.tagName' | sed 's/^v//')
+        echo "latest_version=${LATEST_VERSION}" >> $GITHUB_OUTPUT
+
+        # 現在のバージョンを取得
+        CURRENT_VERSION=$(grep -oP 'COPILOT_CLI_VERSION:\s*\K[\d.]+' .github/workflows/test.yml)
+        echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+
+        # バージョン比較
+        if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; then
+          echo "update_available=true" >> $GITHUB_OUTPUT
+          echo "::notice::New Copilot CLI version available: ${LATEST_VERSION} (current: ${CURRENT_VERSION})"
+        else
+          echo "update_available=false" >> $GITHUB_OUTPUT
+          echo "::notice::Copilot CLI is up to date: ${CURRENT_VERSION}"
+        fi
+
+    - name: Update version in workflow file
+      if: steps.check.outputs.update_available == 'true'
+      run: |
+        sed -i "s/COPILOT_CLI_VERSION: .*/COPILOT_CLI_VERSION: ${{ steps.check.outputs.latest_version }}/" .github/workflows/test.yml
+
+    - name: Create Pull Request
+      if: steps.check.outputs.update_available == 'true'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        BRANCH_NAME="automated/update-copilot-cli-${{ steps.check.outputs.latest_version }}"
+
+        # ブランチが既に存在するか確認
+        if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+          echo "::notice::Branch ${BRANCH_NAME} already exists, skipping"
+          exit 0
+        fi
+
+        # 変更をコミット
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git checkout -b "$BRANCH_NAME"
+        git add .github/workflows/test.yml
+        git commit -m "chore(deps): update Copilot CLI to v${{ steps.check.outputs.latest_version }}"
+        git push origin "$BRANCH_NAME"
+
+        # PRを作成
+        gh pr create \
+          --title "chore(deps): update Copilot CLI to v${{ steps.check.outputs.latest_version }}" \
+          --body "## Summary
+
+        This PR updates the Copilot CLI version used in E2E tests.
+
+        | | Version |
+        |---|---|
+        | Current | v${{ steps.check.outputs.current_version }} |
+        | New | v${{ steps.check.outputs.latest_version }} |
+
+        ## Release Notes
+
+        See [Copilot CLI v${{ steps.check.outputs.latest_version }} Release](https://github.com/github/copilot-cli/releases/tag/v${{ steps.check.outputs.latest_version }})
+
+        ---
+        *This PR was automatically created by the [Update CLI Versions workflow](../actions/workflows/update-gh-cli.yml).*" \
           --base main \
           --head "$BRANCH_NAME"
