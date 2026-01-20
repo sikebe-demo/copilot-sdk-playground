@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-gh-cli:
-    name: Update GitHub CLI
+  update-cli-versions:
+    name: Update CLI Versions
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -19,7 +19,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Check for GitHub CLI updates
-      id: check
+      id: check-gh
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
@@ -40,67 +40,8 @@ jobs:
           echo "::notice::GitHub CLI is up to date: ${CURRENT_VERSION}"
         fi
 
-    - name: Update version in versions.json
-      if: steps.check.outputs.update_available == 'true'
-      run: |
-        jq '.gh_cli_version = "${{ steps.check.outputs.latest_version }}"' .github/versions.json > .github/versions.json.tmp
-        mv .github/versions.json.tmp .github/versions.json
-
-    - name: Create Pull Request
-      if: steps.check.outputs.update_available == 'true'
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        BRANCH_NAME="automated/update-gh-cli-${{ steps.check.outputs.latest_version }}"
-
-        # ブランチが既に存在するか確認
-        if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
-          echo "::notice::Branch ${BRANCH_NAME} already exists, skipping"
-          exit 0
-        fi
-
-        # 変更をコミット
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git checkout -b "$BRANCH_NAME"
-        git add .github/versions.json
-        git commit -m "chore(deps): update GitHub CLI to v${{ steps.check.outputs.latest_version }}"
-        git push origin "$BRANCH_NAME"
-
-        # PRを作成
-        gh pr create \
-          --title "chore(deps): update GitHub CLI to v${{ steps.check.outputs.latest_version }}" \
-          --body "## Summary
-
-        This PR updates the GitHub CLI version used in E2E tests.
-
-        | | Version |
-        |---|---|
-        | Current | v${{ steps.check.outputs.current_version }} |
-        | New | v${{ steps.check.outputs.latest_version }} |
-
-        ## Release Notes
-
-        See [GitHub CLI v${{ steps.check.outputs.latest_version }} Release](https://github.com/cli/cli/releases/tag/v${{ steps.check.outputs.latest_version }})
-
-        ---
-        *This PR was automatically created by the [Update CLI Versions workflow](../actions/workflows/update-gh-cli.yml).*" \
-          --base main \
-          --head "$BRANCH_NAME"
-
-  update-copilot-cli:
-    name: Update Copilot CLI
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
     - name: Check for Copilot CLI updates
-      id: check
+      id: check-copilot
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
@@ -121,18 +62,36 @@ jobs:
           echo "::notice::Copilot CLI is up to date: ${CURRENT_VERSION}"
         fi
 
-    - name: Update version in versions.json
-      if: steps.check.outputs.update_available == 'true'
+    - name: Update versions.json
+      id: update
+      if: steps.check-gh.outputs.update_available == 'true' || steps.check-copilot.outputs.update_available == 'true'
       run: |
-        jq '.copilot_cli_version = "${{ steps.check.outputs.latest_version }}"' .github/versions.json > .github/versions.json.tmp
-        mv .github/versions.json.tmp .github/versions.json
+        # 更新内容を構築
+        UPDATES=""
+        if [ "${{ steps.check-gh.outputs.update_available }}" == "true" ]; then
+          jq '.gh_cli_version = "${{ steps.check-gh.outputs.latest_version }}"' .github/versions.json > .github/versions.json.tmp
+          mv .github/versions.json.tmp .github/versions.json
+          UPDATES="gh-cli-${{ steps.check-gh.outputs.latest_version }}"
+        fi
+
+        if [ "${{ steps.check-copilot.outputs.update_available }}" == "true" ]; then
+          jq '.copilot_cli_version = "${{ steps.check-copilot.outputs.latest_version }}"' .github/versions.json > .github/versions.json.tmp
+          mv .github/versions.json.tmp .github/versions.json
+          if [ -n "$UPDATES" ]; then
+            UPDATES="${UPDATES}_copilot-cli-${{ steps.check-copilot.outputs.latest_version }}"
+          else
+            UPDATES="copilot-cli-${{ steps.check-copilot.outputs.latest_version }}"
+          fi
+        fi
+
+        echo "branch_suffix=${UPDATES}" >> $GITHUB_OUTPUT
 
     - name: Create Pull Request
-      if: steps.check.outputs.update_available == 'true'
+      if: steps.check-gh.outputs.update_available == 'true' || steps.check-copilot.outputs.update_available == 'true'
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        BRANCH_NAME="automated/update-copilot-cli-${{ steps.check.outputs.latest_version }}"
+        BRANCH_NAME="automated/update-cli-${{ steps.update.outputs.branch_suffix }}"
 
         # ブランチが既に存在するか確認
         if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
@@ -140,31 +99,48 @@ jobs:
           exit 0
         fi
 
+        # PR タイトルと本文を構築
+        TITLE=""
+        BODY="## Summary\n\nThis PR updates CLI versions used in E2E tests.\n\n| CLI | Current | New |\n|-----|---------|-----|\n"
+
+        if [ "${{ steps.check-gh.outputs.update_available }}" == "true" ]; then
+          TITLE="GitHub CLI v${{ steps.check-gh.outputs.latest_version }}"
+          BODY="${BODY}| GitHub CLI | v${{ steps.check-gh.outputs.current_version }} | v${{ steps.check-gh.outputs.latest_version }} |\n"
+        fi
+
+        if [ "${{ steps.check-copilot.outputs.update_available }}" == "true" ]; then
+          if [ -n "$TITLE" ]; then
+            TITLE="${TITLE}, Copilot CLI v${{ steps.check-copilot.outputs.latest_version }}"
+          else
+            TITLE="Copilot CLI v${{ steps.check-copilot.outputs.latest_version }}"
+          fi
+          BODY="${BODY}| Copilot CLI | v${{ steps.check-copilot.outputs.current_version }} | v${{ steps.check-copilot.outputs.latest_version }} |\n"
+        fi
+
+        TITLE="chore(deps): update ${TITLE}"
+        BODY="${BODY}\n## Release Notes\n\n"
+
+        if [ "${{ steps.check-gh.outputs.update_available }}" == "true" ]; then
+          BODY="${BODY}- [GitHub CLI v${{ steps.check-gh.outputs.latest_version }}](https://github.com/cli/cli/releases/tag/v${{ steps.check-gh.outputs.latest_version }})\n"
+        fi
+
+        if [ "${{ steps.check-copilot.outputs.update_available }}" == "true" ]; then
+          BODY="${BODY}- [Copilot CLI v${{ steps.check-copilot.outputs.latest_version }}](https://github.com/github/copilot-cli/releases/tag/v${{ steps.check-copilot.outputs.latest_version }})\n"
+        fi
+
+        BODY="${BODY}\n---\n*This PR was automatically created by the [Update CLI Versions workflow](../actions/workflows/update-gh-cli.yml).*"
+
         # 変更をコミット
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git checkout -b "$BRANCH_NAME"
         git add .github/versions.json
-        git commit -m "chore(deps): update Copilot CLI to v${{ steps.check.outputs.latest_version }}"
+        git commit -m "${TITLE}"
         git push origin "$BRANCH_NAME"
 
         # PRを作成
-        gh pr create \
-          --title "chore(deps): update Copilot CLI to v${{ steps.check.outputs.latest_version }}" \
-          --body "## Summary
-
-        This PR updates the Copilot CLI version used in E2E tests.
-
-        | | Version |
-        |---|---|
-        | Current | v${{ steps.check.outputs.current_version }} |
-        | New | v${{ steps.check.outputs.latest_version }} |
-
-        ## Release Notes
-
-        See [Copilot CLI v${{ steps.check.outputs.latest_version }} Release](https://github.com/github/copilot-cli/releases/tag/v${{ steps.check.outputs.latest_version }})
-
-        ---
-        *This PR was automatically created by the [Update CLI Versions workflow](../actions/workflows/update-gh-cli.yml).*" \
+        echo -e "$BODY" | gh pr create \
+          --title "${TITLE}" \
+          --body-file - \
           --base main \
           --head "$BRANCH_NAME"
