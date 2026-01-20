@@ -40,10 +40,11 @@ jobs:
           echo "::notice::GitHub CLI is up to date: ${CURRENT_VERSION}"
         fi
 
-    - name: Update version in workflow file
+    - name: Update version in workflow files
       if: steps.check.outputs.update_available == 'true'
       run: |
         sed -i "s/GH_CLI_VERSION: .*/GH_CLI_VERSION: ${{ steps.check.outputs.latest_version }}/" .github/workflows/test.yml
+        sed -i "s/GH_CLI_VERSION: .*/GH_CLI_VERSION: ${{ steps.check.outputs.latest_version }}/" .github/workflows/copilot-setup-steps.yml
 
     - name: Create Pull Request
       if: steps.check.outputs.update_available == 'true'
@@ -62,7 +63,7 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git checkout -b "$BRANCH_NAME"
-        git add .github/workflows/test.yml
+        git add .github/workflows/test.yml .github/workflows/copilot-setup-steps.yml
         git commit -m "chore(deps): update GitHub CLI to v${{ steps.check.outputs.latest_version }}"
         git push origin "$BRANCH_NAME"
 
@@ -120,10 +121,11 @@ jobs:
           echo "::notice::Copilot CLI is up to date: ${CURRENT_VERSION}"
         fi
 
-    - name: Update version in workflow file
+    - name: Update version in workflow files
       if: steps.check.outputs.update_available == 'true'
       run: |
         sed -i "s/COPILOT_CLI_VERSION: .*/COPILOT_CLI_VERSION: ${{ steps.check.outputs.latest_version }}/" .github/workflows/test.yml
+        sed -i "s/COPILOT_CLI_VERSION: .*/COPILOT_CLI_VERSION: ${{ steps.check.outputs.latest_version }}/" .github/workflows/copilot-setup-steps.yml
 
     - name: Create Pull Request
       if: steps.check.outputs.update_available == 'true'
@@ -142,7 +144,7 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git checkout -b "$BRANCH_NAME"
-        git add .github/workflows/test.yml
+        git add .github/workflows/test.yml .github/workflows/copilot-setup-steps.yml
         git commit -m "chore(deps): update Copilot CLI to v${{ steps.check.outputs.latest_version }}"
         git push origin "$BRANCH_NAME"
 
