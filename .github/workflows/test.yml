@@ -96,7 +96,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         # workflow_run の場合は PR ブランチをチェックアウト
         ref: ${{ needs.notify-test-start.outputs.branch_name || github.ref }}
@@ -149,7 +149,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         # workflow_run の場合は PR ブランチをチェックアウト
         ref: ${{ needs.notify-test-start.outputs.branch_name || github.ref }}
