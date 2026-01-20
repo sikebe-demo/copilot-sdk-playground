@@ -16,6 +16,7 @@ builder.Logging.AddSimpleConsole(options =>
 });
 
 builder.Services.AddSingleton<ICopilotClientFactory, CopilotClientFactory>();
+builder.Services.AddSingleton<ICopilotClientWrapperFactory, CopilotClientWrapperFactory>();
 builder.Services.AddSingleton<IEnvironmentProvider, EnvironmentProvider>();
 builder.Services.AddSingleton<IFileSystem, FileSystemWrapper>();
 builder.Services.AddSingleton<IConsoleWriter, ConsoleWriter>();
