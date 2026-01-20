@@ -93,12 +93,6 @@ jobs:
       run: |
         BRANCH_NAME="automated/update-cli-${{ steps.update.outputs.branch_suffix }}"
 
-        # ブランチが既に存在するか確認
-        if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
-          echo "::notice::Branch ${BRANCH_NAME} already exists, skipping"
-          exit 0
-        fi
-
         # PR タイトルと本文を構築
         TITLE=""
         BODY="## Summary\n\nThis PR updates CLI versions used in E2E tests.\n\n| CLI | Current | New |\n|-----|---------|-----|\n"
@@ -133,6 +127,20 @@ jobs:
         # 変更をコミット
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        # ブランチ名を決定（既存の場合は連番を付与）
+        BASE_BRANCH_NAME="automated/update-cli-${{ steps.update.outputs.branch_suffix }}"
+        BRANCH_NAME="$BASE_BRANCH_NAME"
+        COUNTER=1
+        while git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; do
+          COUNTER=$((COUNTER + 1))
+          BRANCH_NAME="${BASE_BRANCH_NAME}-${COUNTER}"
+        done
+
+        if [ "$BRANCH_NAME" != "$BASE_BRANCH_NAME" ]; then
+          echo "::notice::Using branch name: ${BRANCH_NAME}"
+        fi
+
         git checkout -b "$BRANCH_NAME"
         git add .github/versions.json
         git commit -m "${TITLE}"
