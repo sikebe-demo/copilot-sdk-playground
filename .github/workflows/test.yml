@@ -68,6 +68,15 @@ jobs:
       with:
         global-json-file: './global.json'
 
+    - name: Setup GitHub CLI
+      env:
+        GH_CLI_VERSION: 2.85.0
+      run: |
+        # https://github.com/cli/cli/releases
+        wget -q "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.deb" -O gh.deb
+        sudo dpkg -i gh.deb
+        gh --version
+
     - name: Restore dependencies
       run: dotnet restore
 
