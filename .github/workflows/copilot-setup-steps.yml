@@ -18,9 +18,15 @@ jobs:
       with:
         global-json-file: global.json
 
+    - name: Read versions
+      id: versions
+      run: |
+        echo "gh_cli=$(jq -r '.gh_cli_version' .github/versions.json)" >> $GITHUB_OUTPUT
+        echo "copilot_cli=$(jq -r '.copilot_cli_version' .github/versions.json)" >> $GITHUB_OUTPUT
+
     - name: Setup GitHub CLI
       env:
-        GH_CLI_VERSION: 2.83.2
+        GH_CLI_VERSION: ${{ steps.versions.outputs.gh_cli }}
       run: |
         # https://github.com/cli/cli/releases
         wget -q "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.deb" -O gh.deb
@@ -29,7 +35,7 @@ jobs:
 
     - name: Setup Copilot CLI
       env:
-        COPILOT_CLI_VERSION: 0.0.386
+        COPILOT_CLI_VERSION: ${{ steps.versions.outputs.copilot_cli }}
       run: |
         # https://github.com/github/copilot-cli/releases
         wget -q "https://github.com/github/copilot-cli/releases/download/v${COPILOT_CLI_VERSION}/copilot-linux-x64.tar.gz" -O copilot-cli.tar.gz
