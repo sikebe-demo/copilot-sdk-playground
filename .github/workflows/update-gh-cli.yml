@@ -28,7 +28,7 @@ jobs:
         echo "latest_version=${LATEST_VERSION}" >> $GITHUB_OUTPUT
 
         # 現在のバージョンを取得
-        CURRENT_VERSION=$(grep -oP 'GH_CLI_VERSION:\s*\K[\d.]+' .github/workflows/test.yml)
+        CURRENT_VERSION=$(jq -r '.gh_cli_version' .github/versions.json)
         echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
 
         # バージョン比較
@@ -40,11 +40,11 @@ jobs:
           echo "::notice::GitHub CLI is up to date: ${CURRENT_VERSION}"
         fi
 
-    - name: Update version in workflow files
+    - name: Update version in versions.json
       if: steps.check.outputs.update_available == 'true'
       run: |
-        sed -i "s/GH_CLI_VERSION: .*/GH_CLI_VERSION: ${{ steps.check.outputs.latest_version }}/" .github/workflows/test.yml
-        sed -i "s/GH_CLI_VERSION: .*/GH_CLI_VERSION: ${{ steps.check.outputs.latest_version }}/" .github/workflows/copilot-setup-steps.yml
+        jq '.gh_cli_version = "${{ steps.check.outputs.latest_version }}"' .github/versions.json > .github/versions.json.tmp
+        mv .github/versions.json.tmp .github/versions.json
 
     - name: Create Pull Request
       if: steps.check.outputs.update_available == 'true'
@@ -63,7 +63,7 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git checkout -b "$BRANCH_NAME"
-        git add .github/workflows/test.yml .github/workflows/copilot-setup-steps.yml
+        git add .github/versions.json
         git commit -m "chore(deps): update GitHub CLI to v${{ steps.check.outputs.latest_version }}"
         git push origin "$BRANCH_NAME"
 
@@ -109,7 +109,7 @@ jobs:
         echo "latest_version=${LATEST_VERSION}" >> $GITHUB_OUTPUT
 
         # 現在のバージョンを取得
-        CURRENT_VERSION=$(grep -oP 'COPILOT_CLI_VERSION:\s*\K[\d.]+' .github/workflows/test.yml)
+        CURRENT_VERSION=$(jq -r '.copilot_cli_version' .github/versions.json)
         echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
 
         # バージョン比較
@@ -121,11 +121,11 @@ jobs:
           echo "::notice::Copilot CLI is up to date: ${CURRENT_VERSION}"
         fi
 
-    - name: Update version in workflow files
+    - name: Update version in versions.json
       if: steps.check.outputs.update_available == 'true'
       run: |
-        sed -i "s/COPILOT_CLI_VERSION: .*/COPILOT_CLI_VERSION: ${{ steps.check.outputs.latest_version }}/" .github/workflows/test.yml
-        sed -i "s/COPILOT_CLI_VERSION: .*/COPILOT_CLI_VERSION: ${{ steps.check.outputs.latest_version }}/" .github/workflows/copilot-setup-steps.yml
+        jq '.copilot_cli_version = "${{ steps.check.outputs.latest_version }}"' .github/versions.json > .github/versions.json.tmp
+        mv .github/versions.json.tmp .github/versions.json
 
     - name: Create Pull Request
       if: steps.check.outputs.update_available == 'true'
@@ -144,7 +144,7 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git checkout -b "$BRANCH_NAME"
-        git add .github/workflows/test.yml .github/workflows/copilot-setup-steps.yml
+        git add .github/versions.json
         git commit -m "chore(deps): update Copilot CLI to v${{ steps.check.outputs.latest_version }}"
         git push origin "$BRANCH_NAME"
 
