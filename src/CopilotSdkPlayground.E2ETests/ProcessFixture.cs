@@ -49,13 +49,11 @@ public class ProcessFixture : IAsyncLifetime
 
     public static string GetApplicationPath()
     {
-        // ビルド済みの dll パスを特定
-        // テストプロジェクトの出力ディレクトリから相対的に本体プロジェクトの dll を参照
+        // Locate the built DLL by traversing from the test output directory.
         var testAssemblyPath = typeof(ProcessFixture).Assembly.Location;
         var testOutputDir = Path.GetDirectoryName(testAssemblyPath)!;
 
-        // src/CopilotSdkPlayground.E2ETests/bin/Debug/net10.0 から
-        // src/CopilotSdkPlayground/bin/Debug/net10.0 への相対パス
+        // Relative path from E2E output to app output.
         var appOutputDir = Path.GetFullPath(
             Path.Combine(testOutputDir, "..", "..", "..", "..", "CopilotSdkPlayground", "bin", "Debug", "net10.0"));
         return Path.Combine(appOutputDir, "CopilotSdkPlayground.dll");

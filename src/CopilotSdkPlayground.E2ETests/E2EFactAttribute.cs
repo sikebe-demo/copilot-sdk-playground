@@ -3,7 +3,7 @@ using Xunit;
 namespace CopilotSdkPlayground.E2ETests;
 
 /// <summary>
-/// E2E テスト用の Fact 属性
+/// Fact attribute that skips when E2E prerequisites like tokens or build output are missing.
 /// </summary>
 public sealed class E2EFactAttribute : FactAttribute
 {
