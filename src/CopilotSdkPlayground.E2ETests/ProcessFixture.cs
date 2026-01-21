@@ -13,7 +13,7 @@ public class ProcessFixture : IAsyncLifetime
     public string? SkipReason { get; private set; }
     public string ApplicationPath { get; private set; } = string.Empty;
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         // GH_TOKEN or GITHUB_TOKEN is used by Copilot CLI for authentication
         var authToken = Environment.GetEnvironmentVariable("GH_TOKEN")
@@ -23,7 +23,7 @@ public class ProcessFixture : IAsyncLifetime
         {
             SkipReason = "GH_TOKEN or GITHUB_TOKEN environment variable is not set. E2E tests require authentication.";
             IsAvailable = false;
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         // ビルド済みの dll パスを特定
@@ -41,14 +41,14 @@ public class ProcessFixture : IAsyncLifetime
         {
             SkipReason = $"Application not found at: {ApplicationPath}. Please build the solution first.";
             IsAvailable = false;
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         IsAvailable = true;
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public Task DisposeAsync() => Task.CompletedTask;
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     /// <summary>
     /// アプリケーションを実行し、結果を取得します
