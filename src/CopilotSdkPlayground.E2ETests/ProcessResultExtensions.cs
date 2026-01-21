@@ -1,5 +1,3 @@
-using Xunit.Abstractions;
-
 namespace CopilotSdkPlayground.E2ETests;
 
 /// <summary>

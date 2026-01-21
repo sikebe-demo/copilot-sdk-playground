@@ -1,5 +1,3 @@
-using Xunit.Abstractions;
-
 namespace CopilotSdkPlayground.E2ETests;
 
 /// <summary>
@@ -16,7 +14,10 @@ public class StreamingE2ETests(ProcessFixture fixture, ITestOutputHelper output)
     public async Task StreamingMode_ShouldRunSuccessfullyWithExpectedOutput()
     {
         // Skip if not available
-        Skip.If(!_fixture.IsAvailable, _fixture.SkipReason);
+        if (!_fixture.IsAvailable)
+        {
+            Assert.Skip(_fixture.SkipReason ?? "Test is not available.");
+        }
 
         // Arrange
         var args = Array.Empty<string>(); // デフォルトはストリーミングモード
