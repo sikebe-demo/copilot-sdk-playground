@@ -12,12 +12,9 @@ public class StreamingE2ETests(ProcessFixture fixture, ITestOutputHelper output)
     private readonly ProcessFixture _fixture = fixture;
     private readonly ITestOutputHelper _output = output;
 
-    [Fact]
+    [E2EFact]
     public async Task StreamingMode_ShouldRunSuccessfullyWithExpectedOutput()
     {
-        // Skip if not available
-        Skip.If(!_fixture.IsAvailable, _fixture.SkipReason);
-
         // Arrange
         var args = Array.Empty<string>(); // デフォルトはストリーミングモード
 

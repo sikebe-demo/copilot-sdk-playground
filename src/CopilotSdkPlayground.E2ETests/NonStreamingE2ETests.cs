@@ -12,12 +12,9 @@ public class NonStreamingE2ETests(ProcessFixture fixture, ITestOutputHelper outp
     private readonly ProcessFixture _fixture = fixture;
     private readonly ITestOutputHelper _output = output;
 
-    [Fact]
+    [E2EFact]
     public async Task NonStreamingMode_ShouldRunSuccessfullyWithExpectedOutput()
     {
-        // Skip if not available
-        Skip.If(!_fixture.IsAvailable, _fixture.SkipReason);
-
         // Arrange
         var args = new[] { "--no-streaming" };
 

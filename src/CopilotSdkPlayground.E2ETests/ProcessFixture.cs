@@ -15,17 +15,40 @@ public class ProcessFixture : IAsyncLifetime
 
     public Task InitializeAsync()
     {
+        SkipReason = GetSkipReason(out var applicationPath);
+        ApplicationPath = applicationPath;
+        IsAvailable = string.IsNullOrEmpty(SkipReason);
+        return Task.CompletedTask;
+    }
+
+    public static string? GetSkipReason()
+    {
+        return GetSkipReason(out _);
+    }
+
+    private static string? GetSkipReason(out string applicationPath)
+    {
         // GH_TOKEN or GITHUB_TOKEN is used by Copilot CLI for authentication
         var authToken = Environment.GetEnvironmentVariable("GH_TOKEN")
             ?? Environment.GetEnvironmentVariable("GITHUB_TOKEN");
 
         if (string.IsNullOrEmpty(authToken))
         {
-            SkipReason = "GH_TOKEN or GITHUB_TOKEN environment variable is not set. E2E tests require authentication.";
-            IsAvailable = false;
-            return Task.CompletedTask;
+            applicationPath = string.Empty;
+            return "GH_TOKEN or GITHUB_TOKEN environment variable is not set. E2E tests require authentication.";
         }
 
+        applicationPath = GetApplicationPath();
+        if (!File.Exists(applicationPath))
+        {
+            return $"Application not found at: {applicationPath}. Please build the solution first.";
+        }
+
+        return null;
+    }
+
+    public static string GetApplicationPath()
+    {
         // ビルド済みの dll パスを特定
         // テストプロジェクトの出力ディレクトリから相対的に本体プロジェクトの dll を参照
         var testAssemblyPath = typeof(ProcessFixture).Assembly.Location;
@@ -35,17 +58,7 @@ public class ProcessFixture : IAsyncLifetime
         // src/CopilotSdkPlayground/bin/Debug/net10.0 への相対パス
         var appOutputDir = Path.GetFullPath(
             Path.Combine(testOutputDir, "..", "..", "..", "..", "CopilotSdkPlayground", "bin", "Debug", "net10.0"));
-        ApplicationPath = Path.Combine(appOutputDir, "CopilotSdkPlayground.dll");
-
-        if (!File.Exists(ApplicationPath))
-        {
-            SkipReason = $"Application not found at: {ApplicationPath}. Please build the solution first.";
-            IsAvailable = false;
-            return Task.CompletedTask;
-        }
-
-        IsAvailable = true;
-        return Task.CompletedTask;
+        return Path.Combine(appOutputDir, "CopilotSdkPlayground.dll");
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
