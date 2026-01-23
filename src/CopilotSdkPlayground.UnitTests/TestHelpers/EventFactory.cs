@@ -14,11 +14,7 @@ public static class EventFactory
     /// </summary>
     public static SessionEvent CreateSessionIdleEvent()
     {
-        var dataType = typeof(SessionIdleEvent).GetProperty("Data")?.PropertyType 
-            ?? throw new InvalidOperationException("SessionIdleEvent does not have Data property");
-        var data = Activator.CreateInstance(dataType) 
-            ?? throw new InvalidOperationException($"Could not create instance of {dataType.Name}");
-        
+        var data = CreateDataInstance<SessionIdleEvent>();
         return CreateEventWithData<SessionIdleEvent>(data);
     }
 
@@ -28,11 +24,7 @@ public static class EventFactory
     /// <param name="content">メッセージ内容</param>
     public static SessionEvent CreateAssistantMessageEvent(string content)
     {
-        var dataType = typeof(AssistantMessageEvent).GetProperty("Data")?.PropertyType 
-            ?? throw new InvalidOperationException("AssistantMessageEvent does not have Data property");
-        var data = Activator.CreateInstance(dataType) 
-            ?? throw new InvalidOperationException($"Could not create instance of {dataType.Name}");
-        
+        var data = CreateDataInstance<AssistantMessageEvent>();
         SetProperty(data, "MessageId", Guid.NewGuid().ToString());
         SetProperty(data, "Content", content);
         
@@ -45,11 +37,7 @@ public static class EventFactory
     /// <param name="deltaContent">デルタ内容</param>
     public static SessionEvent CreateAssistantMessageDeltaEvent(string deltaContent)
     {
-        var dataType = typeof(AssistantMessageDeltaEvent).GetProperty("Data")?.PropertyType 
-            ?? throw new InvalidOperationException("AssistantMessageDeltaEvent does not have Data property");
-        var data = Activator.CreateInstance(dataType) 
-            ?? throw new InvalidOperationException($"Could not create instance of {dataType.Name}");
-        
+        var data = CreateDataInstance<AssistantMessageDeltaEvent>();
         SetProperty(data, "MessageId", Guid.NewGuid().ToString());
         SetProperty(data, "DeltaContent", deltaContent);
         
@@ -62,11 +50,7 @@ public static class EventFactory
     /// <param name="content">推論内容</param>
     public static SessionEvent CreateAssistantReasoningEvent(string content)
     {
-        var dataType = typeof(AssistantReasoningEvent).GetProperty("Data")?.PropertyType 
-            ?? throw new InvalidOperationException("AssistantReasoningEvent does not have Data property");
-        var data = Activator.CreateInstance(dataType) 
-            ?? throw new InvalidOperationException($"Could not create instance of {dataType.Name}");
-        
+        var data = CreateDataInstance<AssistantReasoningEvent>();
         SetProperty(data, "ReasoningId", Guid.NewGuid().ToString());
         SetProperty(data, "Content", content);
         
@@ -79,15 +63,19 @@ public static class EventFactory
     /// <param name="deltaContent">デルタ内容</param>
     public static SessionEvent CreateAssistantReasoningDeltaEvent(string deltaContent)
     {
-        var dataType = typeof(AssistantReasoningDeltaEvent).GetProperty("Data")?.PropertyType 
-            ?? throw new InvalidOperationException("AssistantReasoningDeltaEvent does not have Data property");
-        var data = Activator.CreateInstance(dataType) 
-            ?? throw new InvalidOperationException($"Could not create instance of {dataType.Name}");
-        
+        var data = CreateDataInstance<AssistantReasoningDeltaEvent>();
         SetProperty(data, "ReasoningId", Guid.NewGuid().ToString());
         SetProperty(data, "DeltaContent", deltaContent);
         
         return CreateEventWithData<AssistantReasoningDeltaEvent>(data);
+    }
+
+    private static object CreateDataInstance<TEvent>() where TEvent : SessionEvent
+    {
+        var dataType = typeof(TEvent).GetProperty("Data")?.PropertyType 
+            ?? throw new InvalidOperationException($"{typeof(TEvent).Name} does not have Data property");
+        return Activator.CreateInstance(dataType) 
+            ?? throw new InvalidOperationException($"Could not create instance of {dataType.Name}");
     }
 
     private static SessionEvent CreateEventWithData<TEvent>(object data) where TEvent : SessionEvent
