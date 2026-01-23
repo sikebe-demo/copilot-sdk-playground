@@ -11,5 +11,6 @@ public interface ICopilotClientInfoLogger
     /// クライアント接続情報をログに出力します
     /// </summary>
     /// <param name="client">CopilotClient インスタンス</param>
-    void LogConnectionInfo(CopilotClient client);
+    /// <param name="options">CopilotClientOptions インスタンス</param>
+    Task LogConnectionInfoAsync(CopilotClient client, CopilotClientOptions options);
 }

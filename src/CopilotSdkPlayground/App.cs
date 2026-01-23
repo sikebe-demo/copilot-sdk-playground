@@ -30,11 +30,13 @@ public class App(
     /// <returns>終了コード</returns>
     public async Task<int> RunAsync(string[] args)
     {
-        await using var client = _clientFactory.Create(new CopilotClientOptions
+        var clientOptions = new CopilotClientOptions
         {
             LogLevel = "debug",
             Logger = _copilotLogger,
-        });
+        };
+
+        await using var client = _clientFactory.Create(clientOptions);
 
         var clientWrapper = new CopilotClientWrapper(client);
 
@@ -49,7 +51,7 @@ public class App(
                 await _streamingDemo.RunAsync(clientWrapper);
             }
 
-            _clientInfoLogger.LogConnectionInfo(client);
+            await _clientInfoLogger.LogConnectionInfoAsync(client, clientOptions);
             return 0;
         }
         catch (TimeoutException ex)
