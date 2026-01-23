@@ -147,7 +147,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [notify-test-start, unit-tests]
     # pull_request の場合は unit-tests が成功した場合に実行、workflow_run の場合は notify-test-start と unit-tests が成功した場合に実行
-    if: needs.unit-tests.result == 'success' && (github.event_name == 'pull_request' || needs.notify-test-start.result == 'success')
+    if: always() && needs.unit-tests.result == 'success' && (needs.notify-test-start.result == 'skipped' || needs.notify-test-start.result == 'success')
 
     steps:
     - name: Checkout
