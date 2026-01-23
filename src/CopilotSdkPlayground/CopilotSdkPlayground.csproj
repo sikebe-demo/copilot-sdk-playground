@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="GitHub.Copilot.SDK" Version="0.1.15" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
-    <PackageReference Include="StreamJsonRpc" Version="2.22.23" />
+    <PackageReference Include="StreamJsonRpc" Version="2.24.84" />
   </ItemGroup>
 
 </Project>
