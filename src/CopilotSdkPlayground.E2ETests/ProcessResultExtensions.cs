@@ -6,44 +6,22 @@ namespace CopilotSdkPlayground.E2ETests;
 public static class ProcessResultExtensions
 {
     /// <summary>
-    /// プロセス実行結果をテスト出力に記録します。
-    /// GitHub Actions のログに出力するため、Console.WriteLine も使用します。
+    /// プロセス実行結果をテスト出力に記録します
     /// </summary>
     public static void LogTo(this ProcessResult result, ITestOutputHelper output)
     {
-        var lines = new[]
-        {
-            "========== Process Result ==========",
-            $"Exit Code: {result.ExitCode}",
-            $"Timed Out: {result.TimedOut}",
-            "",
-            "---------- Standard Output ----------",
-            result.StandardOutput
-        };
-
-        foreach (var line in lines)
-        {
-            output.WriteLine(line);
-            Console.WriteLine(line);
-        }
-
+        output.WriteLine("========== Process Result ==========");
+        output.WriteLine($"Exit Code: {result.ExitCode}");
+        output.WriteLine($"Timed Out: {result.TimedOut}");
+        output.WriteLine("");
+        output.WriteLine("---------- Standard Output ----------");
+        output.WriteLine(result.StandardOutput);
         if (!string.IsNullOrWhiteSpace(result.StandardError))
         {
-            var errorLines = new[]
-            {
-                "",
-                "---------- Standard Error ----------",
-                result.StandardError
-            };
-
-            foreach (var line in errorLines)
-            {
-                output.WriteLine(line);
-                Console.WriteLine(line);
-            }
+            output.WriteLine("");
+            output.WriteLine("---------- Standard Error ----------");
+            output.WriteLine(result.StandardError);
         }
-
         output.WriteLine("=====================================");
-        Console.WriteLine("=====================================");
     }
 }
