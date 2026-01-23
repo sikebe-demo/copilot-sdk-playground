@@ -111,8 +111,6 @@ public class CopilotClientInfoLoggerService(
         return null;
     }
 
-    #region Reflection Helpers (SDK に公開 API がないため必要)
-
     private static T? GetFieldValue<T>(object obj, string fieldName) where T : class
     {
         try
@@ -156,6 +154,4 @@ public class CopilotClientInfoLoggerService(
 
         return null;
     }
-
-    #endregion
 }
