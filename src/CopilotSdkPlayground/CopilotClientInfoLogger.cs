@@ -14,36 +14,50 @@ public class CopilotClientInfoLoggerService(
     IEnvironmentProvider environmentProvider,
     IFileSystem fileSystem) : ICopilotClientInfoLogger
 {
-    private const BindingFlags _privateInstance = BindingFlags.NonPublic | BindingFlags.Instance;
+    private const BindingFlags PrivateInstance = BindingFlags.NonPublic | BindingFlags.Instance;
 
     private readonly ILogger<CopilotClientInfoLoggerService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IEnvironmentProvider _environmentProvider = environmentProvider ?? throw new ArgumentNullException(nameof(environmentProvider));
     private readonly IFileSystem _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
     /// <inheritdoc />
-    public void LogConnectionInfo(CopilotClient client)
+    public async Task LogConnectionInfoAsync(CopilotClient client, CopilotClientOptions options)
     {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(options);
+
         _logger.LogInformation("=== Copilot Client Connection Info ===");
 
-        LogOptionsInfo(client);
+        LogOptionsInfo(options);
+        await LogStatusInfoAsync(client);
         LogProcessInfo(client);
 
         _logger.LogInformation("=======================================");
     }
 
-    private void LogOptionsInfo(CopilotClient client)
+    private void LogOptionsInfo(CopilotClientOptions options)
     {
-        var options = GetFieldValue<object>(client, "_options");
-        if (options == null) return;
-
-        var cliPath = GetPropertyValue<string>(options, "CliPath");
-        var port = GetPropertyValue<int>(options, "Port");
-        var useStdio = GetPropertyValue<bool>(options, "UseStdio");
-
-        _logger.LogInformation("  Configured CLI Path: {CliPath}", cliPath ?? "(auto-detected)");
-        _logger.LogInformation("  Configured Port: {Port} (UseStdio: {UseStdio})", port, useStdio);
+        _logger.LogInformation("  Configured CLI Path: {CliPath}", options.CliPath ?? "(auto-detected)");
+        _logger.LogInformation("  Configured Port: {Port} (UseStdio: {UseStdio})", options.Port, options.UseStdio);
     }
 
+    private async Task LogStatusInfoAsync(CopilotClient client)
+    {
+        try
+        {
+            var status = await client.GetStatusAsync();
+            _logger.LogInformation("  CLI Version: {Version}", status.Version);
+            _logger.LogInformation("  Protocol Version: {ProtocolVersion}", status.ProtocolVersion);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("  Unable to retrieve CLI status: {Message}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// プロセス情報をログに出力します（Reflection 必須: SDK に公開 API がないため）
+    /// </summary>
     private void LogProcessInfo(CopilotClient client)
     {
         var connectionTask = GetFieldValue<object>(client, "_connectionTask");
@@ -101,7 +115,7 @@ public class CopilotClientInfoLoggerService(
     {
         try
         {
-            var field = obj.GetType().GetField(fieldName, _privateInstance);
+            var field = obj.GetType().GetField(fieldName, PrivateInstance);
             return field?.GetValue(obj) as T;
         }
         catch
@@ -128,7 +142,7 @@ public class CopilotClientInfoLoggerService(
     {
         try
         {
-            foreach (var field in obj.GetType().GetFields(_privateInstance))
+            foreach (var field in obj.GetType().GetFields(PrivateInstance))
             {
                 if (field.GetValue(obj) is T value)
                 {
