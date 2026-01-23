@@ -52,11 +52,6 @@ public class App(
             _clientInfoLogger.LogConnectionInfo(client);
             return 0;
         }
-        catch (StreamJsonRpc.RemoteInvocationException ex)
-        {
-            _logger.LogError("JSON-RPC Error: {Message}", ex.Message);
-            return 1;
-        }
         catch (TimeoutException ex)
         {
             _logger.LogError("Timeout: {Message}", ex.Message);
