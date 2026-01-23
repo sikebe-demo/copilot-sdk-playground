@@ -77,3 +77,4 @@ $env:GH_TOKEN = $(gh auth token); dotnet test src/CopilotSdkPlayground.E2ETests
 - **Null安全**: `Nullable=enable`、コンストラクタで `ArgumentNullException` スロー
 - **命名**: サービスクラスは `*Service` サフィックス（例: `StreamingDemoService`）
 - **XML ドキュメント**: public メンバーには `<summary>` 必須
+- **コードスタイル**: `#region` / `#endregion` は使用しない
