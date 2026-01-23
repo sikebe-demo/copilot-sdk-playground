@@ -198,6 +198,7 @@ jobs:
         dotnet test src/CopilotSdkPlayground.E2ETests/CopilotSdkPlayground.E2ETests.csproj \
           --no-build \
           --verbosity normal \
+          --logger "console;verbosity=detailed" \
           --logger "trx;LogFileName=e2e-results.trx" \
           --results-directory ./e2e-results
 
