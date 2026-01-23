@@ -38,9 +38,8 @@ GitHub Copilot SDK を使用したサンプルアプリケーションです。�
 
 | パッケージ | バージョン | 説明 |
 |-----------|-----------|------|
-| GitHub.Copilot.SDK | 0.1.13-preview.0 | GitHub Copilot SDK |
-| Microsoft.Extensions.Logging.Console | 10.0.2 | コンソールロギング |
-| StreamJsonRpc | 2.22.23 | JSON-RPC 通信 |
+| GitHub.Copilot.SDK | 0.1.16 | GitHub Copilot SDK |
+| Microsoft.Extensions.Hosting | 10.0.2 | DI / ホスティング |
 
 ## 🎮 Usage
 
