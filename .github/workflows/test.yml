@@ -73,9 +73,11 @@ jobs:
       if: steps.get-pr.outputs.pr_number != ''
       env:
         GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ steps.get-pr.outputs.pr_number }}
+        REPO: ${{ github.repository }}
       run: |
-        gh pr comment ${{ steps.get-pr.outputs.pr_number }} \
-          --repo ${{ github.repository }} \
+        gh pr comment "$PR_NUMBER" \
+          --repo "$REPO" \
           --body "## 🔄 Tests Running
 
         Tests have been triggered by the CLI version update workflow.
