@@ -176,11 +176,11 @@ public class HelloWorldDemoServiceTests
 
         // Assert
         Assert.NotNull(capturedOptions);
-        Assert.Equal("Hello, Claude! Please introduce yourself in one sentence.", capturedOptions.Prompt);
+        Assert.Equal("Hello, Copilot! Please introduce yourself in one sentence.", capturedOptions.Prompt);
     }
 
     [Fact]
-    public async Task RunAsync_ShouldDisplayClaudeLabel()
+    public async Task RunAsync_ShouldDisplayCopilotLabel()
     {
         // Arrange
         var sessionMock = new Mock<ICopilotSession>();
@@ -202,7 +202,7 @@ public class HelloWorldDemoServiceTests
         await runTask;
 
         // Assert
-        _consoleWriterMock.Verify(c => c.Write("Claude says: "), Times.Once);
+        _consoleWriterMock.Verify(c => c.Write("Copilot says: "), Times.Once);
     }
 
     [Fact]
@@ -227,13 +227,13 @@ public class HelloWorldDemoServiceTests
 
         // 複数のイベントを順次発火
         capturedHandler?.Invoke(EventFactory.CreateAssistantMessageDeltaEvent("I am"));
-        capturedHandler?.Invoke(EventFactory.CreateAssistantMessageDeltaEvent(" Claude"));
-        capturedHandler?.Invoke(EventFactory.CreateAssistantMessageEvent("I am Claude"));
+        capturedHandler?.Invoke(EventFactory.CreateAssistantMessageDeltaEvent(" Copilot"));
+        capturedHandler?.Invoke(EventFactory.CreateAssistantMessageEvent("I am Copilot"));
         capturedHandler?.Invoke(EventFactory.CreateSessionIdleEvent());
         await runTask;
 
         // Assert
         _consoleWriterMock.Verify(c => c.Write("I am"), Times.Once);
-        _consoleWriterMock.Verify(c => c.Write(" Claude"), Times.Once);
+        _consoleWriterMock.Verify(c => c.Write(" Copilot"), Times.Once);
     }
 }

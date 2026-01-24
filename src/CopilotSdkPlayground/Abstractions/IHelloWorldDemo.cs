@@ -2,7 +2,7 @@ namespace CopilotSdkPlayground.Abstractions;
 
 /// <summary>
 /// Hello World デモのインターフェース
-/// Claude Agent SDK の hello-world デモを GitHub Copilot SDK に移植したサンプル
+/// claude-agent-sdk-demos の hello-world デモを GitHub Copilot SDK に移植したサンプル
 /// </summary>
 public interface IHelloWorldDemo
 {

@@ -5,7 +5,7 @@ namespace CopilotSdkPlayground.Demos;
 
 /// <summary>
 /// Hello World デモ
-/// Claude Agent SDK の hello-world デモを GitHub Copilot SDK に移植したサンプル
+/// claude-agent-sdk-demos の hello-world デモを GitHub Copilot SDK に移植したサンプル
 /// AI に自己紹介を依頼するシンプルなデモです
 /// </summary>
 public class HelloWorldDemoService(IConsoleWriter consoleWriter) : IHelloWorldDemo
@@ -47,8 +47,8 @@ public class HelloWorldDemoService(IConsoleWriter consoleWriter) : IHelloWorldDe
             }
         });
 
-        _consoleWriter.Write("Claude says: ");
-        await session.SendAsync(new MessageOptions { Prompt = "Hello, Claude! Please introduce yourself in one sentence." });
+        _consoleWriter.Write("Copilot says: ");
+        await session.SendAsync(new MessageOptions { Prompt = "Hello, Copilot! Please introduce yourself in one sentence." });
         await done.Task;
     }
 }
