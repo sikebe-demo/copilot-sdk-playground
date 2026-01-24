@@ -35,7 +35,7 @@ public class HelloWorldDemoService(IConsoleWriter consoleWriter) : IHelloWorldDe
                     _consoleWriter.Write(delta.Data.DeltaContent);
                     break;
 
-                case AssistantMessageEvent msg:
+                case AssistantMessageEvent:
                     // 最終メッセージを表示
                     _consoleWriter.WriteLine();
                     break;
