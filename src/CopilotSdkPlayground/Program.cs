@@ -22,6 +22,7 @@ builder.Services.AddSingleton<IConsoleWriter, ConsoleWriter>();
 builder.Services.AddSingleton<ICopilotClientInfoLogger, CopilotClientInfoLoggerService>();
 builder.Services.AddSingleton<IStreamingDemo, StreamingDemoService>();
 builder.Services.AddSingleton<INonStreamingDemo, NonStreamingDemoService>();
+builder.Services.AddSingleton<IHelloWorldDemo, HelloWorldDemoService>();
 builder.Services.AddSingleton<App>();
 
 using var host = builder.Build();
