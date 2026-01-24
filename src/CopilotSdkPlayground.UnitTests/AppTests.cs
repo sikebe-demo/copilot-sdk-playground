@@ -68,6 +68,62 @@ public class AppTests
     }
 
     [Fact]
+    public void ValidateModeSelection_WithNoMode_ShouldNotThrow()
+    {
+        // Act & Assert
+        var exception = Record.Exception(() => App.ValidateModeSelection([]));
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidateModeSelection_WithHelloWorldOnly_ShouldNotThrow()
+    {
+        // Act & Assert
+        var exception = Record.Exception(() => App.ValidateModeSelection(["--hello-world"]));
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidateModeSelection_WithNoStreamingOnly_ShouldNotThrow()
+    {
+        // Act & Assert
+        var exception = Record.Exception(() => App.ValidateModeSelection(["--no-streaming"]));
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidateModeSelection_WithOtherArgsOnly_ShouldNotThrow()
+    {
+        // Act & Assert
+        var exception = Record.Exception(() => App.ValidateModeSelection(["other"]));
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidateModeSelection_WithMultipleModes_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => App.ValidateModeSelection(["--hello-world", "--no-streaming"]));
+        Assert.Contains("複数のモードフラグを同時に指定することはできません", exception.Message);
+    }
+
+    [Fact]
+    public void ValidateModeSelection_WithMultipleModesReversedOrder_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => App.ValidateModeSelection(["--no-streaming", "--hello-world"]));
+        Assert.Contains("複数のモードフラグを同時に指定することはできません", exception.Message);
+    }
+
+    [Fact]
+    public void ValidateModeSelection_WithMultipleModesAndOtherArgs_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => App.ValidateModeSelection(["other", "--hello-world", "--no-streaming"]));
+        Assert.Contains("複数のモードフラグを同時に指定することはできません", exception.Message);
+    }
+
+    [Fact]
     public void Constructor_WithNullClientFactory_ShouldThrowArgumentNullException()
     {
         // Arrange & Act & Assert

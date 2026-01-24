@@ -44,6 +44,8 @@ public class App(
 
         try
         {
+            ValidateModeSelection(args);
+
             if (IsHelloWorldMode(args))
             {
                 await _helloWorldDemo.RunAsync(clientWrapper);
@@ -90,5 +92,23 @@ public class App(
     public static bool IsHelloWorldMode(string[] args)
     {
         return args.Any(arg => arg.Equals("--hello-world", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// モード選択が有効かどうかを検証します
+    /// 複数のモードフラグが指定されている場合は例外をスローします
+    /// </summary>
+    /// <param name="args">コマンドライン引数</param>
+    /// <exception cref="ArgumentException">複数のモードフラグが指定されている場合</exception>
+    public static void ValidateModeSelection(string[] args)
+    {
+        var modeCount = 0;
+        if (IsHelloWorldMode(args)) modeCount++;
+        if (IsNoStreamingMode(args)) modeCount++;
+
+        if (modeCount > 1)
+        {
+            throw new ArgumentException("複数のモードフラグを同時に指定することはできません。--hello-world または --no-streaming のいずれか1つを指定してください。");
+        }
     }
 }
