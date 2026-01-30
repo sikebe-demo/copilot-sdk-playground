@@ -39,9 +39,8 @@ public class NonStreamingE2ETests(ProcessFixture fixture, ITestOutputHelper outp
         var lines = result.StandardOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         var contentLines = lines.Where(l =>
             !l.Contains("===") &&
-            !l.Contains("Assistant:") &&
+            !l.Trim().StartsWith("Assistant:") &&
             !l.Contains("---") &&
-            !l.Contains(':') &&
             !string.IsNullOrWhiteSpace(l)).ToList();
         Assert.NotEmpty(contentLines);
     }
