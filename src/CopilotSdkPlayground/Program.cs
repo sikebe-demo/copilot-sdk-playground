@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Logging.SetMinimumLevel(LogLevel.Debug);
+builder.Logging.SetMinimumLevel(LogLevel.Warning);
 builder.Logging.AddSimpleConsole(options =>
 {
     options.SingleLine = true;
