@@ -32,19 +32,20 @@ public class App(
     /// <returns>終了コード</returns>
     public async Task<int> RunAsync(string[] args)
     {
-        var clientOptions = new CopilotClientOptions
-        {
-            LogLevel = "debug",
-            Logger = _copilotLogger,
-        };
-
-        await using var client = _clientFactory.Create(clientOptions);
-
-        var clientWrapper = new CopilotClientWrapper(client);
-
         try
         {
+            // 引数検証をクライアント生成前に実行（無駄なリソース消費を防ぐ）
             ValidateModeSelection(args);
+
+            var clientOptions = new CopilotClientOptions
+            {
+                LogLevel = "debug",
+                Logger = _copilotLogger,
+            };
+
+            await using var client = _clientFactory.Create(clientOptions);
+
+            var clientWrapper = new CopilotClientWrapper(client);
 
             if (IsHelloWorldMode(args))
             {
