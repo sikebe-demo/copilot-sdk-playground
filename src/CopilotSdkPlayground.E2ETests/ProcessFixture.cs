@@ -63,13 +63,19 @@ public class ProcessFixture : IAsyncLifetime
         var startInfo = new ProcessStartInfo
         {
             FileName = "dotnet",
-            Arguments = $"\"{ApplicationPath}\" {string.Join(" ", args)}",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
             // 環境変数を引き継ぐ（GH_TOKEN など）
         };
+
+        // ArgumentList を使用して引数を安全に渡す（スペースや特殊文字を含む引数も正しく処理される）
+        startInfo.ArgumentList.Add(ApplicationPath);
+        foreach (var arg in args)
+        {
+            startInfo.ArgumentList.Add(arg);
+        }
 
         var stdOut = new StringBuilder();
         var stdErr = new StringBuilder();

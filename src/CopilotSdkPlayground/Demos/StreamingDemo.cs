@@ -1,4 +1,5 @@
 using CopilotSdkPlayground.Abstractions;
+using CopilotSdkPlayground.Helpers;
 using GitHub.Copilot.SDK;
 
 namespace CopilotSdkPlayground.Demos;
@@ -61,6 +62,7 @@ public class StreamingDemoService(IConsoleWriter consoleWriter) : IStreamingDemo
 
         _consoleWriter.WriteLine("Assistant: ");
         await session.SendAsync(new MessageOptions { Prompt = "小話をして" });
-        await done.Task;
+
+        await done.WaitWithTimeoutAsync(TimeSpan.FromMinutes(2));
     }
 }

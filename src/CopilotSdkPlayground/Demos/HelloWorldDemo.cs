@@ -1,4 +1,5 @@
 using CopilotSdkPlayground.Abstractions;
+using CopilotSdkPlayground.Helpers;
 using GitHub.Copilot.SDK;
 
 namespace CopilotSdkPlayground.Demos;
@@ -49,6 +50,7 @@ public class HelloWorldDemoService(IConsoleWriter consoleWriter) : IHelloWorldDe
 
         _consoleWriter.Write("Copilot says: ");
         await session.SendAsync(new MessageOptions { Prompt = "Hello, Copilot! Please introduce yourself in one sentence." });
-        await done.Task;
+
+        await done.WaitWithTimeoutAsync(TimeSpan.FromMinutes(2));
     }
 }

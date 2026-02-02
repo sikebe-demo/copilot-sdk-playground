@@ -5,6 +5,15 @@ using GitHub.Copilot.SDK;
 
 namespace CopilotSdkPlayground.UnitTests;
 
+/// <summary>
+/// StreamingDemoService のユニットテスト
+/// </summary>
+/// <remarks>
+/// タイムアウト処理のテストは <see cref="Helpers.TaskCompletionSourceExtensionsTests"/> でカバーされています。
+/// - SessionIdleEvent が発生しない場合のタイムアウト動作
+/// - TimeoutException のメッセージと型
+/// - CancellationTokenSource の適切な破棄
+/// </remarks>
 public class StreamingDemoServiceTests
 {
     private readonly Mock<IConsoleWriter> _consoleWriterMock;
