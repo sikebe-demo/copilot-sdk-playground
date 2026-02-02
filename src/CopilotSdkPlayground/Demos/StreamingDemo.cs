@@ -1,4 +1,5 @@
 using CopilotSdkPlayground.Abstractions;
+using CopilotSdkPlayground.Helpers;
 using GitHub.Copilot.SDK;
 
 namespace CopilotSdkPlayground.Demos;
@@ -62,15 +63,6 @@ public class StreamingDemoService(IConsoleWriter consoleWriter) : IStreamingDemo
         _consoleWriter.WriteLine("Assistant: ");
         await session.SendAsync(new MessageOptions { Prompt = "小話をして" });
 
-        // タイムアウト付きで完了を待機（無限待機を防ぐ）
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-        try
-        {
-            await done.Task.WaitAsync(cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            throw new TimeoutException("Session did not complete within the timeout period.");
-        }
+        await done.WaitWithTimeoutAsync(TimeSpan.FromMinutes(2));
     }
 }
