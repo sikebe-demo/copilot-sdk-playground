@@ -13,6 +13,7 @@ public class App(
     IStreamingDemo streamingDemo,
     INonStreamingDemo nonStreamingDemo,
     IHelloWorldDemo helloWorldDemo,
+    IResearchDemo researchDemo,
     ICopilotClientInfoLogger clientInfoLogger,
     ILogger<App> logger,
     ILogger<CopilotClient> copilotLogger)
@@ -21,6 +22,7 @@ public class App(
     private readonly IStreamingDemo _streamingDemo = streamingDemo ?? throw new ArgumentNullException(nameof(streamingDemo));
     private readonly INonStreamingDemo _nonStreamingDemo = nonStreamingDemo ?? throw new ArgumentNullException(nameof(nonStreamingDemo));
     private readonly IHelloWorldDemo _helloWorldDemo = helloWorldDemo ?? throw new ArgumentNullException(nameof(helloWorldDemo));
+    private readonly IResearchDemo _researchDemo = researchDemo ?? throw new ArgumentNullException(nameof(researchDemo));
     private readonly ICopilotClientInfoLogger _clientInfoLogger = clientInfoLogger ?? throw new ArgumentNullException(nameof(clientInfoLogger));
     private readonly ILogger<App> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly ILogger<CopilotClient> _copilotLogger = copilotLogger ?? throw new ArgumentNullException(nameof(copilotLogger));
@@ -50,6 +52,10 @@ public class App(
             if (IsHelloWorldMode(args))
             {
                 await _helloWorldDemo.RunAsync(clientWrapper);
+            }
+            else if (IsResearchMode(args))
+            {
+                await _researchDemo.RunAsync(clientWrapper);
             }
             else if (IsNoStreamingMode(args))
             {
@@ -96,6 +102,16 @@ public class App(
     }
 
     /// <summary>
+    /// Research モードかどうかを判定します
+    /// </summary>
+    /// <param name="args">コマンドライン引数</param>
+    /// <returns>Research モードの場合は true</returns>
+    public static bool IsResearchMode(string[] args)
+    {
+        return args.Any(arg => arg.Equals("--research", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
     /// モード選択が有効かどうかを検証します
     /// 複数のモードフラグが指定されている場合は例外をスローします
     /// </summary>
@@ -105,11 +121,12 @@ public class App(
     {
         var modeCount = 0;
         if (IsHelloWorldMode(args)) modeCount++;
+        if (IsResearchMode(args)) modeCount++;
         if (IsNoStreamingMode(args)) modeCount++;
 
         if (modeCount > 1)
         {
-            throw new ArgumentException("複数のモードフラグを同時に指定することはできません。--hello-world または --no-streaming のいずれか1つを指定してください。");
+            throw new ArgumentException("複数のモードフラグを同時に指定することはできません。--hello-world、--research、または --no-streaming のいずれか1つを指定してください。");
         }
     }
 }
