@@ -131,7 +131,7 @@ public class HelloWorldDemoServiceTests
     }
 
     [Fact]
-    public async Task RunAsync_WhenAssistantMessageEventReceived_ShouldAddNewLine()
+    public async Task RunAsync_WhenAssistantMessageEventReceived_ShouldDisplayContentAndNewLine()
     {
         // Arrange
         var sessionMock = new Mock<ICopilotSession>();
@@ -155,7 +155,8 @@ public class HelloWorldDemoServiceTests
         capturedHandler?.Invoke(EventFactory.CreateSessionIdleEvent());
         await runTask;
 
-        // Assert - メッセージ完了時に改行が追加されることを確認
+        // Assert - メッセージ内容と改行が表示されることを確認
+        _consoleWriterMock.Verify(c => c.WriteLine("Final content"), Times.Once);
         _consoleWriterMock.Verify(c => c.WriteLine(), Times.AtLeast(2)); // ヘッダー後とメッセージ後
     }
 
