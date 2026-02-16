@@ -36,8 +36,13 @@ public class HelloWorldDemoService(IConsoleWriter consoleWriter) : IHelloWorldDe
                     _consoleWriter.Write(delta.Data.DeltaContent);
                     break;
 
-                case AssistantMessageEvent:
+                case AssistantMessageEvent msg:
                     // 最終メッセージを表示
+                    // ストリーミングが無効またはストリーミングが失敗した場合のフォールバック
+                    if (!string.IsNullOrEmpty(msg.Data?.Content))
+                    {
+                        _consoleWriter.WriteLine(msg.Data.Content);
+                    }
                     _consoleWriter.WriteLine();
                     break;
 
