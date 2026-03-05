@@ -97,6 +97,7 @@ public class HelloWorldDemoServiceTests
         Assert.NotNull(capturedConfig);
         Assert.Equal("gpt-5", capturedConfig.Model);
         Assert.True(capturedConfig.Streaming);
+        Assert.NotNull(capturedConfig.OnPermissionRequest);
     }
 
     [Fact]
