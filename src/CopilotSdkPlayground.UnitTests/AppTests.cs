@@ -10,6 +10,7 @@ public class AppTests
     private readonly Mock<IStreamingDemo> _streamingDemoMock;
     private readonly Mock<INonStreamingDemo> _nonStreamingDemoMock;
     private readonly Mock<IHelloWorldDemo> _helloWorldDemoMock;
+    private readonly Mock<IResearchDemo> _researchDemoMock;
     private readonly Mock<ICopilotClientInfoLogger> _clientInfoLoggerMock;
     private readonly Mock<ILogger<App>> _loggerMock;
     private readonly Mock<ILogger<CopilotClient>> _copilotLoggerMock;
@@ -20,6 +21,7 @@ public class AppTests
         _streamingDemoMock = new Mock<IStreamingDemo>();
         _nonStreamingDemoMock = new Mock<INonStreamingDemo>();
         _helloWorldDemoMock = new Mock<IHelloWorldDemo>();
+        _researchDemoMock = new Mock<IResearchDemo>();
         _clientInfoLoggerMock = new Mock<ICopilotClientInfoLogger>();
         _loggerMock = new Mock<ILogger<App>>();
         _copilotLoggerMock = new Mock<ILogger<CopilotClient>>();
@@ -67,6 +69,22 @@ public class AppTests
         Assert.Equal(expected, result);
     }
 
+    [Theory]
+    [InlineData(new string[] { }, false)]
+    [InlineData(new string[] { "--research" }, true)]
+    [InlineData(new string[] { "--RESEARCH" }, true)]
+    [InlineData(new string[] { "--Research" }, true)]
+    [InlineData(new string[] { "--res" }, false)]
+    [InlineData(new string[] { "other", "--research" }, true)]
+    public void IsResearchMode_WithVariousArgs_ShouldReturnExpectedResult(string[] args, bool expected)
+    {
+        // Act
+        var result = App.IsResearchMode(args);
+
+        // Assert
+        Assert.Equal(expected, result);
+    }
+
     [Fact]
     public void ValidateModeSelection_WithNoMode_ShouldNotThrow()
     {
@@ -88,6 +106,14 @@ public class AppTests
     {
         // Act & Assert
         var exception = Record.Exception(() => App.ValidateModeSelection(["--no-streaming"]));
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidateModeSelection_WithResearchOnly_ShouldNotThrow()
+    {
+        // Act & Assert
+        var exception = Record.Exception(() => App.ValidateModeSelection(["--research"]));
         Assert.Null(exception);
     }
 
@@ -116,10 +142,34 @@ public class AppTests
     }
 
     [Fact]
+    public void ValidateModeSelection_WithHelloWorldAndResearch_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => App.ValidateModeSelection(["--hello-world", "--research"]));
+        Assert.Contains("複数のモードフラグを同時に指定することはできません", exception.Message);
+    }
+
+    [Fact]
+    public void ValidateModeSelection_WithResearchAndNoStreaming_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => App.ValidateModeSelection(["--research", "--no-streaming"]));
+        Assert.Contains("複数のモードフラグを同時に指定することはできません", exception.Message);
+    }
+
+    [Fact]
     public void ValidateModeSelection_WithMultipleModesAndOtherArgs_ShouldThrowArgumentException()
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() => App.ValidateModeSelection(["other", "--hello-world", "--no-streaming"]));
+        Assert.Contains("複数のモードフラグを同時に指定することはできません", exception.Message);
+    }
+
+    [Fact]
+    public void ValidateModeSelection_WithAllThreeModes_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => App.ValidateModeSelection(["--hello-world", "--research", "--no-streaming"]));
         Assert.Contains("複数のモードフラグを同時に指定することはできません", exception.Message);
     }
 
@@ -132,6 +182,7 @@ public class AppTests
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
             _helloWorldDemoMock.Object,
+            _researchDemoMock.Object,
             _clientInfoLoggerMock.Object,
             _loggerMock.Object,
             _copilotLoggerMock.Object));
@@ -146,6 +197,7 @@ public class AppTests
             null!,
             _nonStreamingDemoMock.Object,
             _helloWorldDemoMock.Object,
+            _researchDemoMock.Object,
             _clientInfoLoggerMock.Object,
             _loggerMock.Object,
             _copilotLoggerMock.Object));
@@ -160,6 +212,7 @@ public class AppTests
             _streamingDemoMock.Object,
             null!,
             _helloWorldDemoMock.Object,
+            _researchDemoMock.Object,
             _clientInfoLoggerMock.Object,
             _loggerMock.Object,
             _copilotLoggerMock.Object));
@@ -173,6 +226,22 @@ public class AppTests
             _clientFactoryMock.Object,
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
+            null!,
+            _researchDemoMock.Object,
+            _clientInfoLoggerMock.Object,
+            _loggerMock.Object,
+            _copilotLoggerMock.Object));
+    }
+
+    [Fact]
+    public void Constructor_WithNullResearchDemo_ShouldThrowArgumentNullException()
+    {
+        // Arrange & Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new App(
+            _clientFactoryMock.Object,
+            _streamingDemoMock.Object,
+            _nonStreamingDemoMock.Object,
+            _helloWorldDemoMock.Object,
             null!,
             _clientInfoLoggerMock.Object,
             _loggerMock.Object,
@@ -188,6 +257,7 @@ public class AppTests
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
             _helloWorldDemoMock.Object,
+            _researchDemoMock.Object,
             null!,
             _loggerMock.Object,
             _copilotLoggerMock.Object));
@@ -202,6 +272,7 @@ public class AppTests
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
             _helloWorldDemoMock.Object,
+            _researchDemoMock.Object,
             _clientInfoLoggerMock.Object,
             null!,
             _copilotLoggerMock.Object));
@@ -216,6 +287,7 @@ public class AppTests
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
             _helloWorldDemoMock.Object,
+            _researchDemoMock.Object,
             _clientInfoLoggerMock.Object,
             _loggerMock.Object,
             null!));
@@ -228,6 +300,7 @@ public class AppTests
             _streamingDemoMock.Object,
             _nonStreamingDemoMock.Object,
             _helloWorldDemoMock.Object,
+            _researchDemoMock.Object,
             _clientInfoLoggerMock.Object,
             _loggerMock.Object,
             _copilotLoggerMock.Object);

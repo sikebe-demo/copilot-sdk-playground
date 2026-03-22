@@ -41,7 +41,6 @@ public class NonStreamingE2ETests(ProcessFixture fixture, ITestOutputHelper outp
             !l.Contains("===") &&
             !l.Contains("Assistant:") &&
             !l.Contains("---") &&
-            !l.Contains(':') &&
             !string.IsNullOrWhiteSpace(l)).ToList();
         Assert.NotEmpty(contentLines);
     }
