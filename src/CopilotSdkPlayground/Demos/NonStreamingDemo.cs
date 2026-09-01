@@ -20,7 +20,6 @@ public class NonStreamingDemoService(IConsoleWriter consoleWriter) : INonStreami
 
         var session = await client.CreateSessionAsync(new SessionConfig
         {
-            Model = "gpt-5",
             Streaming = false,
             OnPermissionRequest = PermissionHandler.ApproveAll
         });

@@ -95,7 +95,7 @@ public class StreamingDemoServiceTests
 
         // Assert
         Assert.NotNull(capturedConfig);
-        Assert.Equal("gpt-5", capturedConfig.Model);
+        Assert.Null(capturedConfig.Model);
         Assert.True(capturedConfig.Streaming);
         Assert.NotNull(capturedConfig.OnPermissionRequest);
     }

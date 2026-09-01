@@ -21,7 +21,6 @@ public class HelloWorldDemoService(IConsoleWriter consoleWriter) : IHelloWorldDe
 
         var session = await client.CreateSessionAsync(new SessionConfig
         {
-            Model = "gpt-5",
             Streaming = true,
             OnPermissionRequest = PermissionHandler.ApproveAll
         });
