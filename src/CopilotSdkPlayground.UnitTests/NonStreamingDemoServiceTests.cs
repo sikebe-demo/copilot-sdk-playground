@@ -97,7 +97,7 @@ public class NonStreamingDemoServiceTests
 
         // Assert
         Assert.NotNull(capturedConfig);
-        Assert.Equal("gpt-5", capturedConfig.Model);
+        Assert.Equal("gpt-5.6-luna", capturedConfig.Model);
         Assert.False(capturedConfig.Streaming);
         Assert.NotNull(capturedConfig.OnPermissionRequest);
     }
