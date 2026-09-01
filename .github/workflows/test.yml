@@ -118,8 +118,9 @@ jobs:
       run: |
         dotnet test src/CopilotSdkPlayground.UnitTests/CopilotSdkPlayground.UnitTests.csproj \
           --no-build \
-          --verbosity normal \
-          --collect:"XPlat Code Coverage" \
+          --output Normal \
+          --coverage \
+          --coverage-output-format cobertura \
           --results-directory ./coverage
 
     - name: Install ReportGenerator
@@ -128,7 +129,7 @@ jobs:
     - name: Generate Coverage Report
       run: |
         reportgenerator \
-          -reports:./coverage/**/coverage.cobertura.xml \
+          -reports:./coverage/**/*.cobertura.xml \
           -targetdir:./coverage/report \
           -reporttypes:"MarkdownSummaryGithub;Cobertura"
 
@@ -140,7 +141,7 @@ jobs:
       with:
         name: coverage-report
         path: |
-          coverage/**/coverage.cobertura.xml
+          coverage/**/*.cobertura.xml
           coverage/report/
         retention-days: 5
 
@@ -199,9 +200,8 @@ jobs:
       run: |
         dotnet test src/CopilotSdkPlayground.E2ETests/CopilotSdkPlayground.E2ETests.csproj \
           --no-build \
-          --verbosity normal \
-          --logger "console;verbosity=detailed" \
-          --logger "trx;LogFileName=e2e-results.trx" \
+          --output Detailed \
+          --report-trx \
           --results-directory ./e2e-results
 
     - name: Add E2E Test Results to Job Summary
@@ -209,12 +209,13 @@ jobs:
       run: |
         echo "## 🧪 E2E Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        if [ -f "./e2e-results/e2e-results.trx" ]; then
+        RESULTS_FILE=$(find ./e2e-results -name '*.trx' -print -quit)
+        if [ -n "$RESULTS_FILE" ]; then
           # Parse TRX file for basic results
-          TOTAL=$(grep -oP 'total="\K[^"]+' ./e2e-results/e2e-results.trx | head -1)
-          PASSED=$(grep -oP 'passed="\K[^"]+' ./e2e-results/e2e-results.trx | head -1)
-          FAILED=$(grep -oP 'failed="\K[^"]+' ./e2e-results/e2e-results.trx | head -1)
-          SKIPPED=$(grep -oP 'skipped="\K[^"]+' ./e2e-results/e2e-results.trx | head -1)
+          TOTAL=$(grep -oP 'total="\K[^"]+' "$RESULTS_FILE" | head -1)
+          PASSED=$(grep -oP 'passed="\K[^"]+' "$RESULTS_FILE" | head -1)
+          FAILED=$(grep -oP 'failed="\K[^"]+' "$RESULTS_FILE" | head -1)
+          SKIPPED=$(grep -oP 'skipped="\K[^"]+' "$RESULTS_FILE" | head -1)
 
           echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
