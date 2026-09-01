@@ -20,6 +20,7 @@ public class StreamingDemoService(IConsoleWriter consoleWriter) : IStreamingDemo
 
         var session = await client.CreateSessionAsync(new SessionConfig
         {
+            Model = "gpt-5.6-luna",
             Streaming = true,
             OnPermissionRequest = PermissionHandler.ApproveAll
         });

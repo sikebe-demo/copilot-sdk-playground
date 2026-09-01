@@ -95,7 +95,7 @@ public class StreamingDemoServiceTests
 
         // Assert
         Assert.NotNull(capturedConfig);
-        Assert.Null(capturedConfig.Model);
+        Assert.Equal("gpt-5.6-luna", capturedConfig.Model);
         Assert.True(capturedConfig.Streaming);
         Assert.NotNull(capturedConfig.OnPermissionRequest);
     }
